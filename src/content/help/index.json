@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "getting-started",
+    "title": "Primeiros Passos",
+    "category": "getting-started",
+    "tags": ["início", "setup", "configuração", "primeiro uso", "começar", "tutorial inicial"],
+    "excerpt": "Aprenda a usar o DeskCraft em 2 minutos.",
+    "order": 1
+  },
+  {
+    "slug": "tutorial-rules",
+    "title": "Criando Regras (IF → THEN)",
+    "category": "tutorials",
+    "tags": ["regras", "condições", "ações", "rule builder", "extensão", "mover", "organizar"],
+    "excerpt": "Aprenda a criar regras para organizar seus arquivos automaticamente.",
+    "order": 2
+  },
+  {
+    "slug": "tutorial-simulation",
+    "title": "Simulação (Preview antes de mover)",
+    "category": "tutorials",
+    "tags": ["simulação", "preview", "dry-run", "testar", "visualizar", "conflito"],
+    "excerpt": "Visualize o resultado antes de mover qualquer arquivo.",
+    "order": 3
+  },
+  {
+    "slug": "tutorial-profiles",
+    "title": "Perfis (Trabalho, Estudos, Pessoal)",
+    "category": "tutorials",
+    "tags": ["perfis", "trabalho", "estudos", "pessoal", "contexto", "agendamento"],
+    "excerpt": "Organize suas regras em perfis para diferentes contextos.",
+    "order": 4
+  },
+  {
+    "slug": "tutorial-watcher",
+    "title": "Monitoramento Automático (Watcher)",
+    "category": "tutorials",
+    "tags": ["watcher", "monitoramento", "automático", "tempo real", "agendamento", "background"],
+    "excerpt": "Configure o monitoramento automático de pastas em tempo real.",
+    "order": 5
+  },
+  {
+    "slug": "tutorial-rollback",
+    "title": "Desfazer (Rollback)",
+    "category": "tutorials",
+    "tags": ["rollback", "desfazer", "reverter", "histórico", "undo"],
+    "excerpt": "Aprenda a reverter uma organização e restaurar seus arquivos.",
+    "order": 6
+  },
+  {
+    "slug": "faq",
+    "title": "Perguntas Frequentes",
+    "category": "faq",
+    "tags": ["faq", "perguntas", "dúvidas", "ajuda", "suporte", "internet", "offline"],
+    "excerpt": "Respostas para as dúvidas mais comuns sobre o DeskCraft.",
+    "order": 7
+  },
+  {
+    "slug": "glossary",
+    "title": "Glossário",
+    "category": "glossary",
+    "tags": ["glossário", "termos", "definições", "vocabulário", "conceitos"],
+    "excerpt": "Entenda os termos e conceitos utilizados no DeskCraft.",
+    "order": 8
+  },
+  {
+    "slug": "troubleshooting",
+    "title": "Solução de Problemas",
+    "category": "troubleshooting",
+    "tags": ["problemas", "erro", "solução", "bug", "permissão", "conflito", "lento", "logs"],
+    "excerpt": "Soluções para os problemas mais comuns encontrados no uso do DeskCraft.",
+    "order": 9
+  }
+]

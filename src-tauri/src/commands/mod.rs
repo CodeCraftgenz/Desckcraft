@@ -1,0 +1,11 @@
+pub mod help_commands;
+pub mod history_commands;
+pub mod license_commands;
+pub mod organizer_commands;
+pub mod profile_commands;
+pub mod rule_commands;
+pub mod schedule_commands;
+pub mod settings_commands;
+pub mod tips_commands;
+pub mod tour_commands;
+pub mod watched_folder_commands;

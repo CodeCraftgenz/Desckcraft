@@ -1,0 +1,50 @@
+[
+  {
+    "id": "step-dashboard",
+    "title": "Dashboard",
+    "description": "Este é seu painel principal. Aqui você vê um resumo das pastas monitoradas, ações recentes e pode iniciar uma organização rápida com um clique.",
+    "target": "[data-tour='dashboard-actions']",
+    "placement": "bottom",
+    "order": 0
+  },
+  {
+    "id": "step-simulate",
+    "title": "Modo Simular",
+    "description": "Antes de mover qualquer arquivo, use o modo Simular. Ele mostra exatamente o que será movido e para onde — sem tocar nos seus arquivos. Segurança em primeiro lugar!",
+    "target": "[data-tour='simulate-btn']",
+    "placement": "bottom",
+    "order": 1
+  },
+  {
+    "id": "step-rules",
+    "title": "Criar Regras",
+    "description": "Crie regras inteligentes com IF → THEN. Por exemplo: SE a extensão for .pdf, ENTÃO mover para Documentos/PDFs. Você tem controle total sobre como seus arquivos são organizados.",
+    "target": "[data-tour='nav-rules']",
+    "placement": "right",
+    "order": 2
+  },
+  {
+    "id": "step-profiles",
+    "title": "Perfis",
+    "description": "Organize regras em perfis como Trabalho, Estudos ou Pessoal. Ative o perfil certo para o momento e suas regras serão aplicadas automaticamente.",
+    "target": "[data-tour='nav-profiles']",
+    "placement": "right",
+    "order": 3
+  },
+  {
+    "id": "step-history",
+    "title": "Histórico e Desfazer",
+    "description": "Cada organização fica registrada no histórico. Se algo não ficou como esperado, você pode desfazer (rollback) qualquer execução com um clique.",
+    "target": "[data-tour='nav-history']",
+    "placement": "right",
+    "order": 4
+  },
+  {
+    "id": "step-help",
+    "title": "Ajuda e Suporte",
+    "description": "Precisa de ajuda? A Central de Ajuda tem tutoriais, FAQ e soluções para problemas comuns — tudo offline, sem precisar de internet. Você também pode refazer este tour a qualquer momento!",
+    "target": "[data-tour='nav-help']",
+    "placement": "right",
+    "order": 5
+  }
+]

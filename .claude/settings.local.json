@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmd.exe /c \"where cargo\")",
+      "Bash(export PATH=\"$USERPROFILE/.cargo/bin:$PATH\")",
+      "Bash(start \"\" \"c:\\\\projetos\\\\DeskCraft\\\\src-tauri\\\\target\\\\release\\\\deskcraft.exe\")",
+      "Bash($HOME/.cargo/bin/cargo check)",
+      "Bash(export PATH=\"$HOME/.cargo/bin:$PATH\")"
+    ]
+  }
+}
