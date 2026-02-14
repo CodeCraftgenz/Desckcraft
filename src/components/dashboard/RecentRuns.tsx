@@ -25,7 +25,7 @@ interface StatusConfig {
 }
 
 const STATUS_MAP: Record<string, StatusConfig> = {
-  completed: { label: 'Concluido', variant: 'success', icon: CheckCircle2 },
+  completed: { label: 'Concluído', variant: 'success', icon: CheckCircle2 },
   failed: { label: 'Falhou', variant: 'danger', icon: XCircle },
   rolled_back: { label: 'Revertido', variant: 'warning', icon: RotateCcw },
   running: { label: 'Executando', variant: 'info', icon: Loader2 },
@@ -33,7 +33,7 @@ const STATUS_MAP: Record<string, StatusConfig> = {
 };
 
 const TYPE_MAP: Record<string, StatusConfig> = {
-  simulation: { label: 'Simulacao', variant: 'info', icon: FlaskConical },
+  simulation: { label: 'Simulação', variant: 'info', icon: FlaskConical },
 };
 
 function getStatusConfig(run: Run): StatusConfig {
@@ -149,7 +149,7 @@ function EmptyRunsState() {
         <Inbox size={22} className="text-gray-400 dark:text-gray-500" />
       </div>
       <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Nenhuma execucao ainda
+        Nenhuma execução ainda
       </p>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-[220px]">
         Comece simulando para ver como suas regras organizariam os arquivos.
@@ -167,7 +167,7 @@ function EmptyRunsState() {
         "
       >
         <FlaskConical size={14} />
-        Iniciar simulacao
+        Iniciar simulação
       </button>
     </motion.div>
   );

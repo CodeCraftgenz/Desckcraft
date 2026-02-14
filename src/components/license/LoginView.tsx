@@ -66,20 +66,20 @@ export function LoginView() {
       >
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/30 border border-gray-200/50 dark:border-gray-800 overflow-hidden">
           {/* Header with branding */}
-          <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 px-8 pt-8 pb-6 text-center">
+          <div className="bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-gray-800 dark:via-gray-850 dark:to-indigo-900/30 px-8 pt-8 pb-6 text-center border-b border-gray-200/50 dark:border-gray-700/50">
             <motion.img
               src={logoSrc}
               alt="DeskCraft"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-              className="h-16 mx-auto mb-3 drop-shadow-lg brightness-0 invert"
+              className="h-14 mx-auto mb-3 drop-shadow-sm"
             />
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-indigo-200 text-sm"
+              className="text-gray-500 dark:text-gray-400 text-sm"
             >
               Organizador de arquivos inteligente
             </motion.p>
@@ -106,7 +106,7 @@ export function LoginView() {
                     <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
                   </motion.div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
-                    Licenca ativada!
+                    Licença ativada!
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Iniciando DeskCraft...
@@ -123,7 +123,7 @@ export function LoginView() {
                 >
                   <div className="text-center mb-2">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      Ativar licenca
+                      Ativar licença
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Insira o e-mail usado na compra
@@ -202,7 +202,7 @@ export function LoginView() {
                     ) : (
                       <>
                         <KeyRound size={16} />
-                        Ativar Licenca
+                        Ativar Licença
                       </>
                     )}
                   </button>

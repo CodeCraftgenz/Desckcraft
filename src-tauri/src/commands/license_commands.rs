@@ -48,8 +48,20 @@ pub async fn check_license(state: State<'_, AppState>) -> Result<LicenseStatus, 
         });
     }
 
-    // If network error, allow offline use with cached license
+    // If network error, allow offline use with cached license (if hardware matches)
     if result.code == "TIMEOUT" || result.code == "NETWORK_ERROR" {
+        // Validate that the stored fingerprint matches current machine
+        if record.machine_fingerprint != hardware_id {
+            log::warn!("Licença local não pertence a esta máquina (fingerprint mismatch)");
+            storage::clear(&app_data_dir);
+            return Ok(LicenseStatus {
+                is_licensed: false,
+                email: String::new(),
+                hardware_id,
+                message: "Licença inválida para este computador.".into(),
+            });
+        }
+
         log::warn!(
             "Verificação online falhou ({}), usando licença local",
             result.code

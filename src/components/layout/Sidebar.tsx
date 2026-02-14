@@ -28,10 +28,10 @@ const navItems: NavItem[] = [
   { id: VIEWS.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
   { id: VIEWS.RULES, label: 'Regras', icon: FileText, dataTour: 'nav-rules' },
   { id: VIEWS.PROFILES, label: 'Perfis', icon: Users, dataTour: 'nav-profiles' },
-  { id: VIEWS.SIMULATION, label: 'Simulacao', icon: FlaskConical },
-  { id: VIEWS.HISTORY, label: 'Historico', icon: History, dataTour: 'nav-history' },
+  { id: VIEWS.SIMULATION, label: 'Simulação', icon: FlaskConical },
+  { id: VIEWS.HISTORY, label: 'Histórico', icon: History, dataTour: 'nav-history' },
   { id: VIEWS.SCHEDULING, label: 'Agendamento', icon: CalendarClock },
-  { id: VIEWS.SETTINGS, label: 'Configuracoes', icon: Settings },
+  { id: VIEWS.SETTINGS, label: 'Configurações', icon: Settings },
   { id: VIEWS.HELP, label: 'Ajuda', icon: HelpCircle, dataTour: 'nav-help' },
 ];
 
@@ -53,22 +53,12 @@ export function Sidebar() {
       "
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 h-14 shrink-0 border-b border-gray-200 dark:border-gray-800">
+      <div className="flex items-center justify-center px-3 h-14 shrink-0 border-b border-gray-200 dark:border-gray-800">
         <img
           src={logoSrc}
           alt="DeskCraft"
-          className="h-8 w-8 rounded-lg object-contain shrink-0"
+          className={`${sidebarCollapsed ? 'h-7' : 'h-9'} object-contain shrink-0 drop-shadow-sm`}
         />
-        {!sidebarCollapsed && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="text-lg font-bold text-gray-900 dark:text-white tracking-tight whitespace-nowrap"
-          >
-            DeskCraft
-          </motion.span>
-        )}
       </div>
 
       {/* Navigation */}

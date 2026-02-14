@@ -117,7 +117,8 @@ export function FolderSettings() {
     try {
       const folder = await tauriInvoke<WatchedFolder>('add_watched_folder', {
         path: newPath.trim(),
-        mode: newMode,
+        profileId: '',
+        watchMode: newMode,
       });
       setFolders((prev) => [...prev, folder]);
       setNewPath('');
@@ -206,7 +207,8 @@ export function FolderSettings() {
       try {
         const folder = await tauriInvoke<WatchedFolder>('add_watched_folder', {
           path,
-          mode: 'manual' as WatchMode,
+          profileId: '',
+          watchMode: 'manual' as WatchMode,
         });
         setFolders((prev) => [...prev, folder]);
         toast.success('Pasta adicionada com sucesso.');

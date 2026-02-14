@@ -199,7 +199,7 @@ export function ProfileCard({
           )}
           {profile.is_default && (
             <Badge variant="info" size="sm">
-              Padrao
+              Padrão
             </Badge>
           )}
         </div>

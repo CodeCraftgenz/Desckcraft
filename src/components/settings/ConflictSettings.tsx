@@ -28,9 +28,9 @@ interface StrategyOption {
 const STRATEGY_OPTIONS: StrategyOption[] = [
   {
     value: 'suffix',
-    label: 'Sufixo numerico',
+    label: 'Sufixo numérico',
     description:
-      'Adiciona um numero ao nome do arquivo quando ja existe outro com o mesmo nome na pasta de destino.',
+      'Adiciona um número ao nome do arquivo quando já existe outro com o mesmo nome na pasta de destino.',
     icon: Hash,
     iconColor: 'text-blue-500 dark:text-blue-400',
     iconBg: 'bg-blue-50 dark:bg-blue-500/10 ring-1 ring-blue-200/50 dark:ring-blue-500/20',
@@ -56,16 +56,16 @@ const STRATEGY_OPTIONS: StrategyOption[] = [
   },
   {
     value: 'ask',
-    label: 'Perguntar ao usuario',
+    label: 'Perguntar ao usuário',
     description:
-      'Exibe uma notificacao pedindo que voce decida o que fazer com cada arquivo conflitante.',
+      'Exibe uma notificação pedindo que você decida o que fazer com cada arquivo conflitante.',
     icon: MessageCircleQuestion,
     iconColor: 'text-purple-500 dark:text-purple-400',
     iconBg:
       'bg-purple-50 dark:bg-purple-500/10 ring-1 ring-purple-200/50 dark:ring-purple-500/20',
     example: {
       before: 'relatorio.pdf',
-      after: '(aguarda sua decisao)',
+      after: '(aguarda sua decisão)',
     },
   },
 ];
@@ -111,7 +111,7 @@ export function ConflictSettings() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Resolucao de conflitos
+              Resolução de conflitos
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Como o DeskCraft lida com arquivos de nomes duplicados
@@ -129,8 +129,8 @@ export function ConflictSettings() {
             "
           >
             <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-              Quando uma regra tenta mover ou renomear um arquivo e ja existe outro
-              com o mesmo nome no destino, o DeskCraft usa a estrategia abaixo para
+              Quando uma regra tenta mover ou renomear um arquivo e já existe outro
+              com o mesmo nome no destino, o DeskCraft usa a estratégia abaixo para
               resolver o conflito automaticamente.
             </p>
           </div>

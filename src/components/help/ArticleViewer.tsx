@@ -246,7 +246,7 @@ export function ArticleViewer({ article, onSelectFirstInCategory }: ArticleViewe
         <div className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-center gap-4">
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Este artigo foi util?
+              Este artigo foi útil?
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -275,7 +275,7 @@ export function ArticleViewer({ article, onSelectFirstInCategory }: ArticleViewe
                 "
               >
                 <ThumbsDown size={14} />
-                <span>Nao</span>
+                <span>Não</span>
               </button>
             </div>
           </div>

@@ -32,11 +32,11 @@ pub async fn verify_license(email: &str, hardware_id: &str) -> LicenseCheckResul
     let client = reqwest::Client::builder()
         .timeout(REQUEST_TIMEOUT)
         .build()
-        .unwrap_or_default();
+        .expect("Failed to build HTTP client");
 
     let payload = serde_json::json!({
         "app_id": APP_ID,
-        "email": email.trim(),
+        "email": email.trim().to_lowercase(),
         "hardware_id": hardware_id.trim()
     });
 
@@ -87,7 +87,7 @@ pub async fn activate_license(email: &str, hardware_id: &str) -> LicenseCheckRes
     let client = reqwest::Client::builder()
         .timeout(REQUEST_TIMEOUT)
         .build()
-        .unwrap_or_default();
+        .expect("Failed to build HTTP client");
 
     let payload = serde_json::json!({
         "app_id": APP_ID,

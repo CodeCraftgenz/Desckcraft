@@ -6,26 +6,26 @@ import type { ActionRowData } from './ActionRow';
 /* ---------- Portuguese Translations ---------- */
 
 const FIELD_NAMES: Record<string, string> = {
-  extension: 'a extensao',
+  extension: 'a extensão',
   filename: 'o nome do arquivo',
   size: 'o tamanho',
-  created_date: 'a data de criacao',
-  modified_date: 'a data de modificacao',
+  created_date: 'a data de criação',
+  modified_date: 'a data de modificação',
   source_folder: 'a pasta de origem',
-  regex: 'o padrao regex',
+  regex: 'o padrão regex',
 };
 
 const OPERATOR_VERBS: Record<string, string> = {
-  equals: 'e',
-  not_equals: 'nao e',
-  contains: 'contem',
-  not_contains: 'nao contem',
-  starts_with: 'comeca com',
+  equals: 'é',
+  not_equals: 'não é',
+  contains: 'contém',
+  not_contains: 'não contém',
+  starts_with: 'começa com',
   ends_with: 'termina com',
-  greater_than: 'e maior que',
-  less_than: 'e menor que',
-  before: 'e antes de',
-  after: 'e depois de',
+  greater_than: 'é maior que',
+  less_than: 'é menor que',
+  before: 'é antes de',
+  after: 'é depois de',
   matches: 'corresponde a',
 };
 
@@ -39,7 +39,7 @@ const ACTION_DESCRIPTIONS: Record<string, (a: ActionRowData) => string> = {
   },
   rename: (a) =>
     a.rename_pattern
-      ? `renomear com o padrao "${a.rename_pattern}"`
+      ? `renomear com o padrão "${a.rename_pattern}"`
       : 'renomear o arquivo',
   add_tag: (a) =>
     a.tag_name ? `adicionar a tag "${a.tag_name}"` : 'adicionar uma tag',
@@ -96,7 +96,7 @@ export function RulePreview({ conditions, actions }: RulePreviewProps) {
       segments.push(`SE ${conditionText}`);
     }
     if (actionText) {
-      segments.push(`ENTAO ${actionText}`);
+      segments.push(`ENTÃO ${actionText}`);
     }
 
     return segments.join(', ') + '.';
@@ -107,7 +107,7 @@ export function RulePreview({ conditions, actions }: RulePreviewProps) {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50/50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/30">
         <Lightbulb size={18} className="text-amber-500 shrink-0 mt-0.5" />
         <p className="text-sm text-amber-700 dark:text-amber-400">
-          Adicione condicoes e acoes para ver a previa da regra.
+          Adicione condições e ações para ver a prévia da regra.
         </p>
       </div>
     );
@@ -118,7 +118,7 @@ export function RulePreview({ conditions, actions }: RulePreviewProps) {
       <Lightbulb size={18} className="text-amber-500 shrink-0 mt-0.5" />
       <div className="space-y-1">
         <p className="text-xs font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wide">
-          Previa da regra
+          Prévia da regra
         </p>
         <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
           {previewText}

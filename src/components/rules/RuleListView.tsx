@@ -133,11 +133,11 @@ function RuleCard({ rule, index, onEdit, onDelete, onToggle }: RuleCardProps) {
           <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <Badge variant="info" size="sm">
               <Filter size={10} className="mr-1" />
-              Condicoes
+              Condições
             </Badge>
             <Badge variant="success" size="sm">
               <Zap size={10} className="mr-1" />
-              Acoes
+              Ações
             </Badge>
           </div>
 
@@ -206,6 +206,7 @@ export function RuleListView() {
     fetchRules,
     updateRule,
     deleteRule,
+    clearSelected,
   } = useRuleStore();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -256,9 +257,7 @@ export function RuleListView() {
 
   const handleEditRule = useCallback(
     (id: string) => {
-      // Store the rule id in the app store for the editor to pick up
-      // We use a convention: set view to RULE_EDITOR, the id is stored via the ruleStore
-      useRuleStore.setState({ selectedRule: null });
+      clearSelected();
       // We'll use a simple approach: store the editing rule id in sessionStorage
       sessionStorage.setItem('editing_rule_id', id);
       setView(VIEWS.RULE_EDITOR);
@@ -284,7 +283,7 @@ export function RuleListView() {
     setIsDeleting(true);
     try {
       await deleteRule(deleteTarget.id);
-      toast.success('Regra excluida com sucesso');
+      toast.success('Regra excluída com sucesso');
       setDeleteTarget(null);
     } catch {
       toast.error('Erro ao excluir a regra');
@@ -309,7 +308,7 @@ export function RuleListView() {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {rules.length > 0
               ? `${rules.length} regra${rules.length !== 1 ? 's' : ''} configurada${rules.length !== 1 ? 's' : ''}`
-              : 'Gerencie suas regras de organizacao de arquivos'}
+              : 'Gerencie suas regras de organização de arquivos'}
           </p>
         </div>
         <Button variant="primary" size="md" icon={Plus} onClick={handleCreateRule}>
@@ -444,7 +443,7 @@ export function RuleListView() {
             <span className="font-semibold text-gray-900 dark:text-gray-100">
               "{deleteTarget?.name}"
             </span>
-            ? Esta acao nao pode ser desfeita.
+            ? Esta ação não pode ser desfeita.
           </p>
           <div className="flex justify-end gap-2">
             <Button

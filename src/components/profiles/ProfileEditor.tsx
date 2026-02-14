@@ -30,10 +30,10 @@ const ICON_OPTIONS: { key: string; icon: LucideIcon; label: string }[] = [
   { key: 'folder', icon: Folder, label: 'Pasta' },
   { key: 'briefcase', icon: Briefcase, label: 'Trabalho' },
   { key: 'book', icon: BookOpen, label: 'Livro' },
-  { key: 'code', icon: Code2, label: 'Codigo' },
-  { key: 'music', icon: Music, label: 'Musica' },
+  { key: 'code', icon: Code2, label: 'Código' },
+  { key: 'music', icon: Music, label: 'Música' },
   { key: 'image', icon: Image, label: 'Imagem' },
-  { key: 'film', icon: Film, label: 'Video' },
+  { key: 'film', icon: Film, label: 'Vídeo' },
   { key: 'gamepad', icon: Gamepad2, label: 'Jogos' },
   { key: 'heart', icon: Heart, label: 'Favoritos' },
   { key: 'star', icon: Star, label: 'Destaque' },
@@ -48,7 +48,7 @@ const COLOR_OPTIONS: { key: string; className: string; label: string }[] = [
   { key: 'blue', className: 'bg-blue-500', label: 'Azul' },
   { key: 'green', className: 'bg-green-500', label: 'Verde' },
   { key: 'emerald', className: 'bg-emerald-500', label: 'Esmeralda' },
-  { key: 'amber', className: 'bg-amber-500', label: 'Ambar' },
+  { key: 'amber', className: 'bg-amber-500', label: 'Âmbar' },
   { key: 'orange', className: 'bg-orange-500', label: 'Laranja' },
   { key: 'red', className: 'bg-red-500', label: 'Vermelho' },
   { key: 'pink', className: 'bg-pink-500', label: 'Rosa' },
@@ -139,7 +139,7 @@ export function ProfileEditor({
   const handleSave = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setNameError('O nome do perfil e obrigatorio');
+      setNameError('O nome do perfil é obrigatório');
       return;
     }
 
@@ -207,7 +207,7 @@ export function ProfileEditor({
         {/* Icon selector */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Icone
+            Ícone
           </label>
           <div className="grid grid-cols-6 gap-2">
             {ICON_OPTIONS.map(({ key, icon: Icon, label }) => (
@@ -291,7 +291,7 @@ export function ProfileEditor({
           </label>
           {allRules.length === 0 ? (
             <p className="text-xs text-gray-400 dark:text-gray-500 py-3 text-center">
-              Nenhuma regra disponivel. Crie regras primeiro.
+              Nenhuma regra disponível. Crie regras primeiro.
             </p>
           ) : (
             <div className="space-y-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-800 p-2">

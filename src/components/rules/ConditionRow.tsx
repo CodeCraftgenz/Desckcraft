@@ -8,21 +8,21 @@ import type { ConditionField, ConditionOperator } from '@/types/rules';
 /* ---------- Portuguese Labels ---------- */
 
 const FIELD_LABELS: Record<string, string> = {
-  extension: 'Extensao do arquivo',
+  extension: 'Extensão do arquivo',
   filename: 'Nome do arquivo',
   size: 'Tamanho do arquivo',
-  created_date: 'Data de criacao',
-  modified_date: 'Data de modificacao',
+  created_date: 'Data de criação',
+  modified_date: 'Data de modificação',
   source_folder: 'Pasta de origem',
-  regex: 'Padrao Regex',
+  regex: 'Padrão Regex',
 };
 
 const OPERATOR_LABELS: Record<string, string> = {
   equals: 'Igual a',
   not_equals: 'Diferente de',
-  contains: 'Contem',
-  not_contains: 'Nao contem',
-  starts_with: 'Comeca com',
+  contains: 'Contém',
+  not_contains: 'Não contém',
+  starts_with: 'Começa com',
   ends_with: 'Termina com',
   greater_than: 'Maior que',
   less_than: 'Menor que',
@@ -80,7 +80,7 @@ function getValuePlaceholder(field: ConditionField): string {
     case 'extension':
       return 'Ex: .pdf, .docx';
     case 'filename':
-      return 'Ex: relatorio';
+      return 'Ex: relatório';
     case 'size':
       return 'Ex: 10MB';
     case 'created_date':
@@ -238,7 +238,7 @@ export function ConditionRow({
               opacity-0 group-hover:opacity-100
               focus:opacity-100
             "
-            title="Remover condicao"
+            title="Remover condição"
           >
             <X size={16} />
           </button>

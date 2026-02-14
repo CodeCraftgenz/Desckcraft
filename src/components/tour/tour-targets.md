@@ -6,7 +6,7 @@ Below is the mapping of each attribute to the component where it should be place
 | `data-tour` value       | Component / File                          | Element description                        |
 |--------------------------|-------------------------------------------|--------------------------------------------|
 | `dashboard-actions`      | `App.tsx` > `DashboardView`               | Stats grid container (quick actions area)  |
-| `simulate-btn`           | `App.tsx` > `DashboardView`               | "Simular organizacao" button               |
+| `simulate-btn`           | `App.tsx` > `DashboardView`               | "Simular organização" button               |
 | `nav-rules`              | `components/layout/Sidebar.tsx`           | Rules nav item button                      |
 | `nav-profiles`           | `components/layout/Sidebar.tsx`           | Profiles nav item button                   |
 | `nav-history`            | `components/layout/Sidebar.tsx`           | History nav item button                    |

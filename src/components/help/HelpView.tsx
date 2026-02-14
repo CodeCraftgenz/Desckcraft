@@ -8,6 +8,7 @@ import { ArticleViewer } from './ArticleViewer';
 import { Button } from '@/components/ui/Button';
 import { useAppStore } from '@/stores';
 import { useTourStore } from '@/stores/tourStore';
+import { VIEWS } from '@/lib/constants';
 
 export function HelpView() {
   const {
@@ -36,7 +37,7 @@ export function HelpView() {
 
   const handleStartTour = useCallback(() => {
     startTour();
-    setView('dashboard');
+    setView(VIEWS.DASHBOARD);
   }, [startTour, setView]);
 
   if (isLoading) {

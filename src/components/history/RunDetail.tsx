@@ -46,14 +46,14 @@ const runStatusConfig: Record<
 > = {
   pending: { label: 'Pendente', variant: 'default', icon: Clock },
   running: { label: 'Executando', variant: 'info', icon: Loader2 },
-  completed: { label: 'Concluido', variant: 'success', icon: CheckCircle2 },
+  completed: { label: 'Concluído', variant: 'success', icon: CheckCircle2 },
   failed: { label: 'Falhou', variant: 'danger', icon: XCircle },
   rolled_back: { label: 'Revertido', variant: 'warning', icon: RotateCcw },
 };
 
 const runTypeLabels: Record<Run['run_type'], string> = {
   manual: 'Manual',
-  simulation: 'Simulacao',
+  simulation: 'Simulação',
   watcher: 'Monitoramento',
   scheduled: 'Agendado',
 };
@@ -152,7 +152,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
           "
         >
           <ArrowLeft size={14} />
-          Voltar ao historico
+          Voltar ao histórico
         </button>
       </motion.div>
 
@@ -206,7 +206,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
                   icon={RotateCcw}
                   onClick={() => setShowRollback(true)}
                 >
-                  Desfazer esta execucao
+                  Desfazer esta execução
                 </Button>
               )}
             </div>
@@ -254,7 +254,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
                   <CheckCircle2 size={14} className="text-gray-400 mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Concluido
+                      Concluído
                     </p>
                     <p className="text-sm text-gray-900 dark:text-gray-100">
                       {formatDate(run.completed_at)}
@@ -281,7 +281,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
                 <Timer size={14} className="text-gray-400 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                    Duracao
+                    Duração
                   </p>
                   <p className="text-sm text-gray-900 dark:text-gray-100">
                     {formatDuration(run.started_at, run.completed_at)}
@@ -335,7 +335,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
         <div className="flex items-center gap-2 mb-3">
           <FileText size={16} className="text-gray-500 dark:text-gray-400" />
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Itens da execucao ({runItems.length})
+            Itens da execução ({runItems.length})
           </h3>
         </div>
 
@@ -410,7 +410,7 @@ export function RunDetail({ runId, onBack }: RunDetailProps) {
           ) : (
             <div className="py-8 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nenhum item encontrado para esta execucao.
+                Nenhum item encontrado para esta execução.
               </p>
             </div>
           )}

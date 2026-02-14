@@ -52,7 +52,7 @@ const statusConfig: Record<
     color: 'text-blue-500 dark:text-blue-400',
   },
   completed: {
-    label: 'Concluido',
+    label: 'Concluído',
     variant: 'success',
     icon: CheckCircle2,
     color: 'text-emerald-500 dark:text-emerald-400',
@@ -76,7 +76,7 @@ const runTypeConfig: Record<
   { label: string; variant: 'default' | 'info' | 'success' | 'warning' }
 > = {
   manual: { label: 'Manual', variant: 'default' },
-  simulation: { label: 'Simulacao', variant: 'info' },
+  simulation: { label: 'Simulação', variant: 'info' },
   watcher: { label: 'Monitoramento', variant: 'success' },
   scheduled: { label: 'Agendado', variant: 'warning' },
 };
@@ -85,10 +85,10 @@ const runTypeConfig: Record<
 
 const statusFilterOptions = [
   { value: 'all', label: 'Todos' },
-  { value: 'completed', label: 'Concluidos' },
+  { value: 'completed', label: 'Concluídos' },
   { value: 'failed', label: 'Falhou' },
   { value: 'rolled_back', label: 'Revertido' },
-  { value: 'simulation', label: 'Simulacao' },
+  { value: 'simulation', label: 'Simulação' },
   { value: 'pending', label: 'Pendente' },
 ];
 
@@ -255,7 +255,7 @@ function RunListItem({ run, index, onViewDetail, onRollback }: RunListItemProps)
                 </div>
                 <div>
                   <span className="font-medium text-gray-500 dark:text-gray-400">
-                    Inicio:
+                    Início:
                   </span>
                   <p className="text-gray-700 dark:text-gray-300 mt-0.5">
                     {formatDate(run.started_at)}
@@ -408,10 +408,10 @@ export function HistoryView() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-            Historico
+            Histórico
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {runs.length} execuc{runs.length !== 1 ? 'oes' : 'ao'} registrada{runs.length !== 1 ? 's' : ''}
+            {runs.length} execuç{runs.length !== 1 ? 'ões' : 'ão'} registrada{runs.length !== 1 ? 's' : ''}
           </p>
         </div>
       </motion.div>
@@ -456,14 +456,14 @@ export function HistoryView() {
           {runs.length === 0 ? (
             <EmptyState
               icon={Clock}
-              title="Nenhuma execucao registrada ainda"
-              description="O historico de execucoes aparecera aqui depois que voce executar suas regras pela primeira vez."
+              title="Nenhuma execução registrada ainda"
+              description="O histórico de execuções aparecerá aqui depois que você executar suas regras pela primeira vez."
             />
           ) : (
             <EmptyState
               icon={Filter}
               title="Nenhum resultado"
-              description="Nenhuma execucao corresponde ao filtro selecionado. Tente alterar os filtros."
+              description="Nenhuma execução corresponde ao filtro selecionado. Tente alterar os filtros."
             />
           )}
         </motion.div>

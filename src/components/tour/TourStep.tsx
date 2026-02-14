@@ -419,7 +419,7 @@ export function TourStepCard({
                       dark:focus:ring-offset-gray-900
                     "
                   >
-                    <span>Proximo</span>
+                    <span>Próximo</span>
                     <ChevronRight size={14} />
                   </button>
                 )}

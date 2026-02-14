@@ -102,12 +102,12 @@ export function RollbackDialog({ isOpen, onClose, run }: RollbackDialogProps) {
               />
               <div>
                 <p className="text-sm font-semibold text-amber-800 dark:text-amber-300 mb-1">
-                  Tem certeza que deseja desfazer esta execucao?
+                  Tem certeza que deseja desfazer esta execução?
                 </p>
                 <p className="text-sm text-amber-700 dark:text-amber-400/80 leading-relaxed">
                   {run.moved_files} arquivo{run.moved_files !== 1 ? 's' : ''}{' '}
-                  {run.moved_files !== 1 ? 'serao movidos' : 'sera movido'}{' '}
-                  de volta para {run.moved_files !== 1 ? 'suas posicoes originais' : 'sua posicao original'}.
+                  {run.moved_files !== 1 ? 'serão movidos' : 'será movido'}{' '}
+                  de volta para {run.moved_files !== 1 ? 'suas posições originais' : 'sua posição original'}.
                 </p>
               </div>
             </div>
@@ -132,7 +132,7 @@ export function RollbackDialog({ isOpen, onClose, run }: RollbackDialogProps) {
             {/* Note */}
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               <strong>Nota:</strong> Arquivos modificados ou deletados externamente
-              podem nao ser revertidos corretamente.
+              podem não ser revertidos corretamente.
             </p>
           </>
         )}

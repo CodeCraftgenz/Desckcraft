@@ -380,7 +380,7 @@ export function SimulationPreview({ items }: SimulationPreviewProps) {
                             </div>
                             <div>
                               <span className="font-medium text-gray-500 dark:text-gray-400">
-                                Tipo de acao:
+                                Tipo de ação:
                               </span>
                               <p className="text-gray-700 dark:text-gray-300 mt-0.5">
                                 {item.action_type === 'move' && 'Mover'}
@@ -394,7 +394,7 @@ export function SimulationPreview({ items }: SimulationPreviewProps) {
                                 <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400">
                                   <AlertTriangle size={12} />
                                   <span className="font-medium">
-                                    Conflito: ja existe um arquivo no destino
+                                    Conflito: já existe um arquivo no destino
                                   </span>
                                 </div>
                               </div>
@@ -435,7 +435,7 @@ export function SimulationPreview({ items }: SimulationPreviewProps) {
             Anterior
           </button>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Pagina {currentPage + 1} de {totalPages}
+            Página {currentPage + 1} de {totalPages}
           </span>
           <button
             type="button"
@@ -445,7 +445,7 @@ export function SimulationPreview({ items }: SimulationPreviewProps) {
               disabled:opacity-40 disabled:cursor-not-allowed
               text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            Proximo
+            Próximo
           </button>
         </div>
       )}

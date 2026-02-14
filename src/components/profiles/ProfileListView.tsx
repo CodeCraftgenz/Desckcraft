@@ -99,7 +99,7 @@ export function ProfileListView() {
 
   const handleDeleteRequest = (profile: Profile) => {
     if (profile.is_default) {
-      toast.error('O perfil padrao nao pode ser excluido');
+      toast.error('O perfil padrão não pode ser excluído');
       return;
     }
     setProfileToDelete(profile);
@@ -112,7 +112,7 @@ export function ProfileListView() {
     setIsDeleting(true);
     try {
       await deleteProfile(profileToDelete.id);
-      toast.success(`Perfil "${profileToDelete.name}" excluido`);
+      toast.success(`Perfil "${profileToDelete.name}" excluído`);
       setDeleteConfirmOpen(false);
       setProfileToDelete(null);
     } catch {
@@ -226,7 +226,7 @@ export function ProfileListView() {
                 ?
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Esta acao nao pode ser desfeita. As regras associadas nao serao excluidas.
+                Esta ação não pode ser desfeita. As regras associadas não serão excluídas.
               </p>
             </div>
           </div>

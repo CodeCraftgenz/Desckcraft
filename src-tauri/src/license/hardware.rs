@@ -7,6 +7,23 @@ use std::process::Command;
 pub fn get_hardware_id() -> String {
     let processor_id = get_processor_id();
     let motherboard_serial = get_motherboard_serial();
+
+    if processor_id.is_empty() && motherboard_serial.is_empty() {
+        log::warn!("Hardware ID: both processor and motherboard queries returned empty. Using hostname fallback.");
+        let hostname = hostname::get()
+            .map(|h| h.to_string_lossy().to_string())
+            .unwrap_or_else(|_| "unknown-host".to_string());
+        let composite = format!("PROC=;MB=;HOST={}", hostname);
+        return compute_sha256(&composite);
+    }
+
+    if processor_id.is_empty() {
+        log::warn!("Hardware ID: processor ID query returned empty");
+    }
+    if motherboard_serial.is_empty() {
+        log::warn!("Hardware ID: motherboard serial query returned empty");
+    }
+
     let composite = format!("PROC={};MB={}", processor_id, motherboard_serial);
     compute_sha256(&composite)
 }

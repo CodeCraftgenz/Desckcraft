@@ -23,9 +23,9 @@ const actionOptions = ACTION_TYPES.map((a) => ({
 /* ---------- Template Helpers ---------- */
 
 const SUBFOLDER_TEMPLATES = [
-  { value: '{extension}', label: 'Por extensao ({extension})' },
-  { value: '{year}/{month}', label: 'Por ano/mes ({year}/{month})' },
-  { value: '{year}/{month}/{day}', label: 'Por ano/mes/dia ({year}/{month}/{day})' },
+  { value: '{extension}', label: 'Por extensão ({extension})' },
+  { value: '{year}/{month}', label: 'Por ano/mês ({year}/{month})' },
+  { value: '{year}/{month}/{day}', label: 'Por ano/mês/dia ({year}/{month}/{day})' },
 ];
 
 const RENAME_HELPERS = [
@@ -116,7 +116,7 @@ export function ActionRow({ action, index, onChange, onDelete }: ActionRowProps)
               opacity-0 group-hover:opacity-100
               focus:opacity-100
             "
-            title="Remover acao"
+            title="Remover ação"
           >
             <X size={16} />
           </button>
@@ -185,7 +185,7 @@ export function ActionRow({ action, index, onChange, onDelete }: ActionRowProps)
           <div className="space-y-2">
             <div className="flex-1 min-w-0">
               <Input
-                label="Padrao de renomeacao"
+                label="Padrão de renomeação"
                 placeholder="Ex: {original}_{date}"
                 value={action.rename_pattern}
                 onChange={(e) => onChange(action.id, { rename_pattern: e.target.value })}
@@ -194,7 +194,7 @@ export function ActionRow({ action, index, onChange, onDelete }: ActionRowProps)
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
-                Variaveis disponiveis
+                Variáveis disponíveis
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {RENAME_HELPERS.map((helper) => (

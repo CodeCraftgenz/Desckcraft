@@ -61,7 +61,7 @@ const SETTINGS_TABS: SettingsTab[] = [
   },
   {
     id: 'license',
-    label: 'Licenca',
+    label: 'Licença',
     icon: KeyRound,
     iconColor: 'text-violet-500 dark:text-violet-400',
     iconBg: 'bg-violet-50 dark:bg-violet-500/10',
@@ -81,11 +81,11 @@ const SETTINGS_TABS: SettingsTab[] = [
  * SettingsView — Main settings page with a vertical tabbed layout.
  *
  * Structure:
- * - Header with "Configuracoes" title and Settings icon
+ * - Header with "Configurações" title and Settings icon
  * - Left sidebar: vertical tab navigation
  * - Right content: active section with fade transition
  *
- * Sections: Geral, Pastas, Conflitos, Dicas, Licenca, Sobre
+ * Sections: Geral, Pastas, Conflitos, Dicas, Licença, Sobre
  */
 export function SettingsView() {
   const [activeTab, setActiveTab] = useState(SETTINGS_TABS[0].id);
@@ -108,10 +108,10 @@ export function SettingsView() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            Configuracoes
+            Configurações
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Personalize o comportamento e aparencia do DeskCraft
+            Personalize o comportamento e aparência do DeskCraft
           </p>
         </div>
       </div>

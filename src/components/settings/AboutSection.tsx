@@ -16,10 +16,10 @@ const APP_VERSION = '1.0.0';
 
 const TECH_STACK = [
   { name: 'Tauri', description: 'Framework nativo multiplataforma', color: 'text-sky-500' },
-  { name: 'React', description: 'Interface do usuario reativa', color: 'text-cyan-500' },
-  { name: 'Rust', description: 'Backend seguro e performatico', color: 'text-orange-500' },
-  { name: 'TypeScript', description: 'Tipagem estatica no frontend', color: 'text-blue-500' },
-  { name: 'Tailwind CSS', description: 'Estilizacao utilitaria', color: 'text-teal-500' },
+  { name: 'React', description: 'Interface do usuário reativa', color: 'text-cyan-500' },
+  { name: 'Rust', description: 'Backend seguro e performático', color: 'text-orange-500' },
+  { name: 'TypeScript', description: 'Tipagem estática no frontend', color: 'text-blue-500' },
+  { name: 'Tailwind CSS', description: 'Estilização utilitária', color: 'text-teal-500' },
 ];
 
 interface ShortcutEntry {
@@ -30,12 +30,12 @@ interface ShortcutEntry {
 const KEYBOARD_SHORTCUTS: ShortcutEntry[] = [
   { keys: ['Ctrl', 'N'], description: 'Nova regra' },
   { keys: ['Ctrl', 'S'], description: 'Salvar regra atual' },
-  { keys: ['Ctrl', 'E'], description: 'Executar simulacao' },
-  { keys: ['Ctrl', ','], description: 'Abrir configuracoes' },
-  { keys: ['Ctrl', 'Z'], description: 'Desfazer ultima acao' },
-  { keys: ['Ctrl', 'Shift', 'Z'], description: 'Refazer acao' },
+  { keys: ['Ctrl', 'E'], description: 'Executar simulação' },
+  { keys: ['Ctrl', ','], description: 'Abrir configurações' },
+  { keys: ['Ctrl', 'Z'], description: 'Desfazer última ação' },
+  { keys: ['Ctrl', 'Shift', 'Z'], description: 'Refazer ação' },
   { keys: ['Esc'], description: 'Cancelar / Fechar modal' },
-  { keys: ['Ctrl', 'H'], description: 'Abrir historico' },
+  { keys: ['Ctrl', 'H'], description: 'Abrir histórico' },
   { keys: ['Ctrl', '?'], description: 'Abrir ajuda' },
 ];
 
@@ -45,7 +45,7 @@ const KEYBOARD_SHORTCUTS: ShortcutEntry[] = [
  * Provides:
  * - App name, version, and description
  * - Tech stack credits
- * - Exportar Diagnostico button
+ * - Exportar Diagnóstico button
  * - Keyboard shortcuts cheat sheet
  * - Link to Help Center
  */
@@ -80,7 +80,7 @@ export function AboutSection() {
               Sobre
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Informacoes do aplicativo, creditos e atalhos
+              Informações do aplicativo, créditos e atalhos
             </p>
           </div>
         </div>
@@ -101,11 +101,11 @@ export function AboutSection() {
                   DeskCraft
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                  Organizacao inteligente de arquivos para sua area de trabalho
+                  Organização inteligente de arquivos para sua área de trabalho
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500 mt-2 leading-relaxed max-w-md">
-                  DeskCraft automatiza a organizacao dos seus arquivos usando regras
-                  personalizaveis, perfis e monitoramento inteligente. Tudo processado
+                  DeskCraft automatiza a organização dos seus arquivos usando regras
+                  personalizáveis, perfis e monitoramento inteligente. Tudo processado
                   localmente, com total privacidade.
                 </p>
               </div>
@@ -213,7 +213,7 @@ export function AboutSection() {
               icon={Download}
               onClick={handleExportDiagnostic}
             >
-              Exportar Diagnostico
+              Exportar Diagnóstico
             </Button>
             <Button
               variant="ghost"
@@ -230,7 +230,7 @@ export function AboutSection() {
 
           {/* Footer */}
           <p className="text-[11px] text-gray-400 dark:text-gray-500 text-center pt-2">
-            DeskCraft v{APP_VERSION} — Feito com dedicacao para simplificar sua vida digital.
+            DeskCraft v{APP_VERSION} — Feito com dedicação para simplificar sua vida digital.
           </p>
         </div>
       </Card>

@@ -24,16 +24,16 @@ interface FeatureRow {
 }
 
 const FEATURE_COMPARISON: FeatureRow[] = [
-  { feature: 'Regras de organizacao', free: 'Ate 5', pro: 'Ilimitadas' },
-  { feature: 'Pastas monitoradas', free: 'Ate 2', pro: 'Ilimitadas' },
-  { feature: 'Perfis de organizacao', free: 'Ate 2', pro: 'Ilimitados' },
-  { feature: 'Historico de operacoes', free: '7 dias', pro: 'Ilimitado' },
+  { feature: 'Regras de organização', free: 'Até 5', pro: 'Ilimitadas' },
+  { feature: 'Pastas monitoradas', free: 'Até 2', pro: 'Ilimitadas' },
+  { feature: 'Perfis de organização', free: 'Até 2', pro: 'Ilimitados' },
+  { feature: 'Histórico de operações', free: '7 dias', pro: 'Ilimitado' },
   { feature: 'Modo tempo real', free: false, pro: true },
   { feature: 'Agendamento', free: false, pro: true },
   { feature: 'Dicas inteligentes', free: true, pro: true },
-  { feature: 'Simulacao de regras', free: true, pro: true },
-  { feature: 'Exportar diagnostico', free: false, pro: true },
-  { feature: 'Suporte prioritario', free: false, pro: true },
+  { feature: 'Simulação de regras', free: true, pro: true },
+  { feature: 'Exportar diagnóstico', free: false, pro: true },
+  { feature: 'Suporte prioritário', free: false, pro: true },
 ];
 
 const TRIAL_DAYS = 14;
@@ -118,7 +118,7 @@ export function LicenseSettings() {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              Licenca
+              Licença
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Gerencie seu plano e ative funcionalidades Pro
@@ -155,16 +155,16 @@ export function LicenseSettings() {
                     {status === 'pro'
                       ? 'DeskCraft Pro'
                       : status === 'trial'
-                        ? 'Periodo de Teste'
+                        ? 'Período de Teste'
                         : 'Plano Gratuito'}
                   </h4>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {status === 'pro'
-                    ? 'Licenca ativa — todas as funcionalidades desbloqueadas'
+                    ? 'Licença ativa — todas as funcionalidades desbloqueadas'
                     : status === 'trial'
                       ? `${trialDaysLeft} dia${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
-                      : 'Funcionalidades basicas ativas com limites'}
+                      : 'Funcionalidades básicas ativas com limites'}
                 </p>
               </div>
               <Badge
@@ -210,7 +210,7 @@ export function LicenseSettings() {
                   2 perfis
                 </span>
                 <span className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                  7 dias historico
+                  7 dias histórico
                 </span>
               </div>
             )}
@@ -245,7 +245,7 @@ export function LicenseSettings() {
           {status !== 'pro' && (
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Ativar licenca
+                Ativar licença
               </label>
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -267,7 +267,7 @@ export function LicenseSettings() {
                 </Button>
               </div>
               <p className="text-xs text-gray-400 dark:text-gray-500">
-                Insira sua chave de licenca para desbloquear o DeskCraft Pro
+                Insira sua chave de licença para desbloquear o DeskCraft Pro
               </p>
             </div>
           )}
@@ -278,7 +278,7 @@ export function LicenseSettings() {
           {/* Feature comparison table */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Comparacao de planos
+              Comparação de planos
             </h4>
             <div className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Table header */}

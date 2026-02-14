@@ -17,7 +17,7 @@ const THEME_OPTIONS: {
     value: 'system',
     label: 'Sistema',
     icon: Monitor,
-    description: 'Segue a preferencia do sistema operacional',
+    description: 'Segue a preferência do sistema operacional',
   },
   {
     value: 'light',
@@ -34,12 +34,12 @@ const THEME_OPTIONS: {
 ];
 
 const LANGUAGE_OPTIONS = [
-  { value: 'pt-BR', label: 'Portugues (pt-BR)' },
+  { value: 'pt-BR', label: 'Português (pt-BR)' },
   { value: 'en-US', label: 'English (en-US)' },
 ];
 
 const LOG_LEVEL_OPTIONS = [
-  { value: 'info', label: 'Info — Padrao' },
+  { value: 'info', label: 'Info — Padrão' },
   { value: 'debug', label: 'Debug — Detalhado' },
   { value: 'warn', label: 'Warn — Avisos' },
   { value: 'error', label: 'Error — Somente erros' },
@@ -50,7 +50,7 @@ const LOG_LEVEL_OPTIONS = [
  *
  * Provides:
  * - Theme selector with visual preview icons (Sistema/Claro/Escuro)
- * - Language selector (Portugues/English)
+ * - Language selector (Português/English)
  * - Start minimized toggle
  * - Start with OS toggle
  * - Log level selector
@@ -122,7 +122,7 @@ export function GeneralSettings() {
               Geral
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Aparencia, idioma e comportamento do aplicativo
+              Aparência, idioma e comportamento do aplicativo
             </p>
           </div>
         </div>
@@ -220,7 +220,7 @@ export function GeneralSettings() {
                 onChange={handleLanguageChange}
               />
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Novas traducoes serao adicionadas em futuras versoes
+                Novas traduções serão adicionadas em futuras versões
               </p>
             </div>
           </div>
@@ -234,7 +234,7 @@ export function GeneralSettings() {
               checked={startMinimized}
               onChange={handleStartMinimizedChange}
               label="Iniciar minimizado"
-              description="O aplicativo inicia na bandeja do sistema ao inves de abrir a janela"
+              description="O aplicativo inicia na bandeja do sistema ao invés de abrir a janela"
             />
             <Switch
               checked={startWithOs}
@@ -249,13 +249,13 @@ export function GeneralSettings() {
 
           {/* Log level */}
           <Select
-            label="Nivel de log"
+            label="Nível de log"
             options={LOG_LEVEL_OPTIONS}
             value={logLevel}
             onChange={handleLogLevelChange}
           />
           <p className="text-xs text-gray-400 dark:text-gray-500 -mt-4">
-            Util para diagnostico. Nivel "Debug" gera logs mais detalhados.
+            Útil para diagnóstico. Nível "Debug" gera logs mais detalhados.
           </p>
         </div>
       </Card>

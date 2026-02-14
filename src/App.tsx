@@ -87,7 +87,7 @@ function LoadingScreen() {
           className="animate-spin text-indigo-500 dark:text-indigo-400 mx-auto mb-4"
         />
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Verificando licenca...
+          Verificando licença...
         </p>
       </motion.div>
     </div>

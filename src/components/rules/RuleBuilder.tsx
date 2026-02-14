@@ -189,7 +189,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
     const newErrors: { name?: string } = {};
 
     if (!name.trim()) {
-      newErrors.name = 'O nome da regra e obrigatorio';
+      newErrors.name = 'O nome da regra é obrigatório';
     }
 
     setErrors(newErrors);
@@ -231,11 +231,15 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
         targetRuleId = newRule.id;
       }
 
+      if (!targetRuleId) {
+        throw new Error('Falha ao obter ID da regra.');
+      }
+
       // Save conditions
       for (const c of conditions) {
         if (c.value.trim()) {
           await addCondition(
-            targetRuleId!,
+            targetRuleId,
             c.field,
             c.operator,
             c.value.trim(),
@@ -259,7 +263,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
         const tagName = a.action_type === 'add_tag' ? a.tag_name || null : null;
 
         await addAction(
-          targetRuleId!,
+          targetRuleId,
           a.action_type,
           destination,
           renamePattern,
@@ -310,8 +314,8 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {isEditing
-                ? 'Modifique as condicoes e acoes desta regra'
-                : 'Configure as condicoes e acoes para organizar seus arquivos'}
+                ? 'Modifique as condições e ações desta regra'
+                : 'Configure as condições e ações para organizar seus arquivos'}
             </p>
           </div>
         </div>
@@ -351,7 +355,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
               htmlFor="rule-description"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Descricao (opcional)
+              Descrição (opcional)
             </label>
             <textarea
               id="rule-description"
@@ -380,7 +384,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                    SE (Condicoes)
+                    SE (Condições)
                   </h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Defina quando esta regra deve ser aplicada
@@ -393,7 +397,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
                 icon={Plus}
                 onClick={addConditionRow}
               >
-                Adicionar condicao
+                Adicionar condição
               </Button>
             </div>
           </div>
@@ -416,7 +420,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
 
             {conditions.length === 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
-                Nenhuma condicao adicionada. Clique em "Adicionar condicao" acima.
+                Nenhuma condição adicionada. Clique em "Adicionar condição" acima.
               </p>
             )}
           </div>
@@ -435,10 +439,10 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-                    ENTAO (Acoes)
+                    ENTÃO (Ações)
                   </h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Defina o que fazer quando as condicoes forem atendidas
+                    Defina o que fazer quando as condições forem atendidas
                   </p>
                 </div>
               </div>
@@ -448,7 +452,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
                 icon={Plus}
                 onClick={addActionRow}
               >
-                Adicionar acao
+                Adicionar ação
               </Button>
             </div>
           </div>
@@ -469,7 +473,7 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
 
             {actions.length === 0 && (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-4 text-center">
-                Nenhuma acao adicionada. Clique em "Adicionar acao" acima.
+                Nenhuma ação adicionada. Clique em "Adicionar ação" acima.
               </p>
             )}
           </div>

@@ -76,7 +76,7 @@ export function TipsSettings() {
               Dicas inteligentes
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Sugestoes proativas baseadas nos seus arquivos
+              Sugestões proativas baseadas nos seus arquivos
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export function TipsSettings() {
           >
             <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
               As dicas inteligentes analisam suas pastas (Desktop, Downloads) e sugerem
-              regras de organizacao baseadas em padroes detectados. As dicas sao processadas
+              regras de organização baseadas em padrões detectados. As dicas são processadas
               localmente e nenhum dado sai do seu computador.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function TipsSettings() {
             checked={tipsEnabled}
             onChange={handleToggle}
             label="Ativar dicas inteligentes"
-            description="Receba sugestoes automaticas para organizar seus arquivos"
+            description="Receba sugestões automáticas para organizar seus arquivos"
           />
 
           {/* Frequency selector */}
@@ -113,7 +113,7 @@ export function TipsSettings() {
             `}
           >
             <Select
-              label="Frequencia de avaliacao"
+              label="Frequência de avaliação"
               options={FREQUENCY_OPTIONS}
               value={tipsFrequency}
               onChange={handleFrequencyChange}
