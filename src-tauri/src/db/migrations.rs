@@ -19,6 +19,10 @@ const MIGRATIONS: &[(&str, &str)] = &[
         "004_default_rules",
         include_str!("../../migrations/004_default_rules.sql"),
     ),
+    (
+        "005_extra_rules",
+        include_str!("../../migrations/005_extra_rules.sql"),
+    ),
 ];
 
 /// Runs all pending migrations against the provided database connection.
@@ -83,6 +87,6 @@ mod tests {
         let count: i64 = conn
             .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
             .unwrap();
-        assert_eq!(count, 3);
+        assert_eq!(count, 5);
     }
 }

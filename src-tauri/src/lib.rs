@@ -34,6 +34,12 @@ pub fn run() {
     let conn = db::connection::init(&app_data_dir)
         .expect("Failed to initialize database");
 
+    // Spawn background scheduler thread with its own DB connection
+    let scheduler_data_dir = app_data_dir.clone();
+    std::thread::spawn(move || {
+        scheduler_loop(&scheduler_data_dir);
+    });
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -111,6 +117,124 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("Error while running DeskCraft");
+}
+
+/// Background scheduler loop.
+/// Opens its own DB connection and checks for due schedules every 30 seconds.
+fn scheduler_loop(app_data_dir: &str) {
+    // Wait a few seconds for the app to fully start
+    std::thread::sleep(std::time::Duration::from_secs(5));
+
+    log::info!("Scheduler background loop started");
+
+    let conn = match db::connection::init(app_data_dir) {
+        Ok(c) => c,
+        Err(e) => {
+            log::error!("Scheduler failed to open DB: {}", e);
+            return;
+        }
+    };
+
+    loop {
+        std::thread::sleep(std::time::Duration::from_secs(30));
+
+        let due = match db::queries::schedules::get_due_schedules(&conn) {
+            Ok(d) => d,
+            Err(e) => {
+                log::warn!("Scheduler: failed to query due schedules: {}", e);
+                continue;
+            }
+        };
+
+        if due.is_empty() {
+            continue;
+        }
+
+        log::info!("Scheduler: {} schedule(s) due for execution", due.len());
+
+        for schedule in &due {
+            let folder_path = match db::queries::schedules::get_schedule_folder_path(
+                &conn,
+                &schedule.folder_id,
+            ) {
+                Ok(p) => p,
+                Err(e) => {
+                    log::error!(
+                        "Scheduler: failed to get folder for schedule {}: {}",
+                        schedule.id, e
+                    );
+                    let _ = db::queries::schedules::mark_schedule_run(
+                        &conn, &schedule.id, &schedule.cron_expr,
+                    );
+                    continue;
+                }
+            };
+
+            log::info!(
+                "Scheduler: running schedule {} — profile={}, folder={}",
+                schedule.id, schedule.profile_id, folder_path
+            );
+
+            match run_scheduled_organization(&conn, &schedule.profile_id, &folder_path) {
+                Ok((moved, skipped, errors)) => {
+                    log::info!(
+                        "Scheduler: schedule {} done — moved={}, skipped={}, errors={}",
+                        schedule.id, moved, skipped, errors
+                    );
+                }
+                Err(e) => {
+                    log::error!("Scheduler: schedule {} failed: {}", schedule.id, e);
+                }
+            }
+
+            if let Err(e) = db::queries::schedules::mark_schedule_run(
+                &conn, &schedule.id, &schedule.cron_expr,
+            ) {
+                log::error!("Scheduler: failed to update schedule {}: {}", schedule.id, e);
+            }
+        }
+    }
+}
+
+/// Runs the organizer for a scheduled profile on a folder.
+/// Returns (moved, skipped, errors).
+fn run_scheduled_organization(
+    conn: &rusqlite::Connection,
+    profile_id: &str,
+    folder_path: &str,
+) -> anyhow::Result<(u32, u32, u32)> {
+    use std::collections::HashMap;
+
+    let profile_rules = db::queries::profiles::get_profile_rules(conn, profile_id)?;
+    if profile_rules.is_empty() {
+        anyhow::bail!("Nenhuma regra configurada para o perfil {}", profile_id);
+    }
+
+    let mut conditions_map: HashMap<String, Vec<db::models::RuleCondition>> = HashMap::new();
+    let mut actions_map: HashMap<String, Vec<db::models::RuleAction>> = HashMap::new();
+
+    for rule in &profile_rules {
+        conditions_map.insert(rule.id.clone(), db::queries::rules::get_conditions(conn, &rule.id)?);
+        actions_map.insert(rule.id.clone(), db::queries::rules::get_actions(conn, &rule.id)?);
+    }
+
+    let files = organizer::scanner::scan_folder(folder_path, false)?;
+    if files.is_empty() {
+        return Ok((0, 0, 0));
+    }
+
+    let simulation = organizer::simulator::simulate(&files, &profile_rules, &conditions_map, &actions_map);
+    if simulation.matched_files == 0 {
+        return Ok((0, simulation.unmatched_files, 0));
+    }
+
+    let conflict_strategy = db::queries::settings::get_setting(conn, "conflict_strategy")?
+        .unwrap_or_else(|| "suffix".to_string());
+
+    let run = db::queries::runs::create_run(conn, profile_id, "scheduled", folder_path)?;
+    let result = organizer::executor::execute(conn, &simulation, &run.id, &conflict_strategy)?;
+
+    Ok((result.moved, result.skipped, result.errors))
 }
 
 /// Returns a sensible default app data directory for DeskCraft.

@@ -62,6 +62,40 @@ pub fn add_watched_folder(
     })
 }
 
+/// Finds an existing watched folder by path, or creates a new one.
+pub fn find_or_create_by_path(
+    conn: &Connection,
+    path: &str,
+    profile_id: &str,
+) -> Result<WatchedFolder> {
+    // Try to find existing
+    let existing: Option<WatchedFolder> = conn
+        .query_row(
+            "SELECT id, path, profile_id, is_enabled, watch_mode, created_at, updated_at
+             FROM watched_folders WHERE path = ?1",
+            [path],
+            |row| {
+                Ok(WatchedFolder {
+                    id: row.get(0)?,
+                    path: row.get(1)?,
+                    profile_id: row.get(2)?,
+                    is_enabled: row.get(3)?,
+                    watch_mode: row.get(4)?,
+                    created_at: row.get(5)?,
+                    updated_at: row.get(6)?,
+                })
+            },
+        )
+        .ok();
+
+    if let Some(folder) = existing {
+        return Ok(folder);
+    }
+
+    // Create new watched folder with "scheduled" mode
+    add_watched_folder(conn, path, profile_id, "scheduled")
+}
+
 /// Removes a watched folder by ID.
 pub fn remove_watched_folder(conn: &Connection, id: &str) -> Result<()> {
     conn.execute("DELETE FROM watched_folders WHERE id = ?1", [id])

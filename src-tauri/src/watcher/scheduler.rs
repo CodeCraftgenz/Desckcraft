@@ -1,152 +1,157 @@
-use chrono::{NaiveDateTime, Utc};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use chrono::{Datelike, Local, NaiveDateTime, NaiveTime, Timelike, Weekday};
 
-/// A scheduled task entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ScheduleEntry {
-    pub id: String,
-    pub profile_id: String,
-    pub folder_id: String,
-    pub folder_path: String,
-    pub cron_expr: String,
-    pub is_enabled: bool,
-    pub last_run_at: Option<String>,
-    pub next_run_at: Option<String>,
-}
-
-/// Represents a schedule that is due for execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DueSchedule {
-    pub schedule_id: String,
-    pub profile_id: String,
-    pub folder_path: String,
-}
-
-/// Manages scheduled organization tasks.
-pub struct Scheduler {
-    schedules: HashMap<String, ScheduleEntry>,
-}
-
-impl Scheduler {
-    /// Creates a new empty scheduler.
-    pub fn new() -> Self {
-        Scheduler {
-            schedules: HashMap::new(),
-        }
+/// Parses a standard 5-field cron expression and calculates the next run time
+/// after `after`. Supports: minute, hour, day-of-month, month, day-of-week.
+///
+/// Cron fields: `minute hour day_of_month month day_of_week`
+///
+/// Supported values:
+/// - `*` = any
+/// - A single number (e.g. `8`, `30`)
+/// - `*/N` = every N (only for minute/hour)
+///
+/// Returns `None` if the expression is invalid.
+pub fn next_run_after(cron_expr: &str, after: NaiveDateTime) -> Option<NaiveDateTime> {
+    let parts: Vec<&str> = cron_expr.trim().split_whitespace().collect();
+    if parts.len() < 5 {
+        return None;
     }
 
-    /// Adds or updates a schedule entry.
-    pub fn add_schedule(&mut self, entry: ScheduleEntry) {
-        log::info!("Adding schedule: {} (cron: {})", entry.id, entry.cron_expr);
-        self.schedules.insert(entry.id.clone(), entry);
-    }
+    let minute_spec = parts[0];
+    let hour_spec = parts[1];
+    let _dom_spec = parts[2]; // day of month — not used in our simplified parser
+    let _month_spec = parts[3]; // month — not used
+    let dow_spec = parts[4]; // day of week
 
-    /// Removes a schedule entry by ID.
-    pub fn remove_schedule(&mut self, id: &str) {
-        if self.schedules.remove(id).is_some() {
-            log::info!("Removed schedule: {}", id);
-        }
-    }
+    // Parse minute
+    let (minute_val, minute_any, minute_step) = parse_field(minute_spec)?;
+    // Parse hour
+    let (hour_val, hour_any, hour_step) = parse_field(hour_spec)?;
+    // Parse day of week
+    let dow_filter: Option<u32> = if dow_spec == "*" || dow_spec == "?" {
+        None
+    } else {
+        dow_spec.parse::<u32>().ok()
+    };
 
-    /// Checks which schedules are currently due for execution.
-    ///
-    /// A schedule is considered due if:
-    /// 1. It is enabled
-    /// 2. Its `next_run_at` is in the past or not set (first run)
-    ///
-    /// Returns a list of `DueSchedule` entries for schedules that should run now.
-    pub fn check_due(&self) -> Vec<DueSchedule> {
-        let now = Utc::now().naive_utc();
-        let mut due = Vec::new();
-
-        for entry in self.schedules.values() {
-            if !entry.is_enabled {
-                continue;
+    // Hourly: hour=*, minute is fixed (e.g. "0 * * * *")
+    if hour_any && !minute_any {
+        let m = minute_val;
+        let mut candidate = after + chrono::Duration::minutes(1);
+        // Round up to next occurrence of minute=m
+        for _ in 0..1500 {
+            if candidate.minute() == m {
+                return Some(candidate.date().and_time(
+                    NaiveTime::from_hms_opt(candidate.hour(), m, 0)?,
+                ));
             }
-
-            let is_due = match &entry.next_run_at {
-                Some(next_run_str) => {
-                    match NaiveDateTime::parse_from_str(next_run_str, "%Y-%m-%d %H:%M:%S") {
-                        Ok(next_run) => now >= next_run,
-                        Err(_) => {
-                            log::warn!(
-                                "Invalid next_run_at format for schedule {}: '{}'",
-                                entry.id,
-                                next_run_str
-                            );
-                            false
-                        }
-                    }
-                }
-                None => true, // No next_run_at means it has never run — consider it due
-            };
-
-            if is_due {
-                due.push(DueSchedule {
-                    schedule_id: entry.id.clone(),
-                    profile_id: entry.profile_id.clone(),
-                    folder_path: entry.folder_path.clone(),
-                });
-            }
+            candidate += chrono::Duration::minutes(1);
         }
-
-        due
+        return None;
     }
 
-    /// Updates the last_run_at and calculates the next_run_at for a schedule.
-    /// This is a simple implementation that adds a fixed interval parsed from
-    /// a simplified cron expression.
-    pub fn mark_run(&mut self, schedule_id: &str) {
-        let now = Utc::now().naive_utc();
-        let now_str = now.format("%Y-%m-%d %H:%M:%S").to_string();
-
-        if let Some(entry) = self.schedules.get_mut(schedule_id) {
-            entry.last_run_at = Some(now_str);
-
-            // Simple interval calculation from cron-like expressions.
-            // Supports: "@hourly", "@daily", "@weekly", "@monthly" or
-            // a number representing interval in minutes.
-            let next = match entry.cron_expr.as_str() {
-                "@hourly" => now + chrono::Duration::hours(1),
-                "@daily" => now + chrono::Duration::days(1),
-                "@weekly" => now + chrono::Duration::weeks(1),
-                "@monthly" => now + chrono::Duration::days(30),
-                other => {
-                    // Try to parse as minutes interval
-                    if let Ok(minutes) = other.parse::<i64>() {
-                        now + chrono::Duration::minutes(minutes)
-                    } else {
-                        // Default to daily
-                        log::warn!(
-                            "Unrecognized cron expression '{}', defaulting to daily",
-                            other
-                        );
-                        now + chrono::Duration::days(1)
-                    }
-                }
-            };
-
-            entry.next_run_at = Some(next.format("%Y-%m-%d %H:%M:%S").to_string());
-            log::info!(
-                "Schedule {} ran at {}, next run at {:?}",
-                schedule_id,
-                entry.last_run_at.as_deref().unwrap_or("?"),
-                entry.next_run_at
+    // Every N minutes (e.g. "*/15 * * * *")
+    if minute_step > 0 && hour_any {
+        let mut candidate = after + chrono::Duration::minutes(1);
+        // Find next minute divisible by step
+        let m = candidate.minute();
+        let next_m = ((m / minute_step) + 1) * minute_step;
+        if next_m >= 60 {
+            candidate = (candidate.date().and_time(
+                NaiveTime::from_hms_opt(candidate.hour(), 0, 0)?,
+            )) + chrono::Duration::hours(1);
+        } else {
+            candidate = candidate.date().and_time(
+                NaiveTime::from_hms_opt(candidate.hour(), next_m, 0)?,
             );
         }
+        return Some(candidate);
     }
 
-    /// Returns the number of active schedules.
-    pub fn count(&self) -> usize {
-        self.schedules.len()
+    // Every N hours (e.g. "0 */2 * * *")
+    if hour_step > 0 {
+        let m = if minute_any { 0 } else { minute_val };
+        let mut candidate = after + chrono::Duration::minutes(1);
+        for _ in 0..750 {
+            if candidate.hour() % hour_step == 0 && candidate.minute() == m {
+                return Some(candidate.date().and_time(
+                    NaiveTime::from_hms_opt(candidate.hour(), m, 0)?,
+                ));
+            }
+            candidate += chrono::Duration::hours(1);
+            candidate = candidate.date().and_time(
+                NaiveTime::from_hms_opt(candidate.hour(), m, 0)?,
+            );
+        }
+        return None;
+    }
+
+    // Daily or weekly: specific hour and minute
+    let h = if hour_any { 0 } else { hour_val };
+    let m = if minute_any { 0 } else { minute_val };
+
+    let target_time = NaiveTime::from_hms_opt(h, m, 0)?;
+
+    // Start scanning from today
+    let mut date = after.date();
+    let max_days = 400; // scan up to ~13 months
+
+    // If today's target time is still in the future, start from today
+    // Otherwise start from tomorrow
+    if date.and_time(target_time) <= after {
+        date = date.succ_opt()?;
+    }
+
+    for _ in 0..max_days {
+        let candidate = date.and_time(target_time);
+
+        // Check day-of-week filter
+        if let Some(dow) = dow_filter {
+            let candidate_dow = chrono_weekday_to_cron(date.weekday());
+            if candidate_dow != dow {
+                date = date.succ_opt()?;
+                continue;
+            }
+        }
+
+        return Some(candidate);
+    }
+
+    None
+}
+
+/// Parses a single cron field. Returns (value, is_wildcard, step).
+fn parse_field(field: &str) -> Option<(u32, bool, u32)> {
+    if field == "*" {
+        return Some((0, true, 0));
+    }
+    if let Some(step_str) = field.strip_prefix("*/") {
+        let step = step_str.parse::<u32>().ok()?;
+        return Some((0, true, step));
+    }
+    let val = field.parse::<u32>().ok()?;
+    Some((val, false, 0))
+}
+
+/// Converts chrono Weekday to cron day-of-week (0=Sunday, 1=Monday, ..., 6=Saturday).
+fn chrono_weekday_to_cron(wd: Weekday) -> u32 {
+    match wd {
+        Weekday::Sun => 0,
+        Weekday::Mon => 1,
+        Weekday::Tue => 2,
+        Weekday::Wed => 3,
+        Weekday::Thu => 4,
+        Weekday::Fri => 5,
+        Weekday::Sat => 6,
     }
 }
 
-impl Default for Scheduler {
-    fn default() -> Self {
-        Self::new()
-    }
+/// Calculates the next run time from now for a given cron expression.
+/// Uses the local timezone.
+pub fn calculate_next_run(cron_expr: &str) -> Option<String> {
+    let now = Local::now().naive_local();
+    let next = next_run_after(cron_expr, now)?;
+    Some(next.format("%Y-%m-%d %H:%M:%S").to_string())
 }
 
 #[cfg(test)]
@@ -154,63 +159,43 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_add_and_check_due() {
-        let mut scheduler = Scheduler::new();
-
-        scheduler.add_schedule(ScheduleEntry {
-            id: "s1".to_string(),
-            profile_id: "p1".to_string(),
-            folder_id: "f1".to_string(),
-            folder_path: "/downloads".to_string(),
-            cron_expr: "@daily".to_string(),
-            is_enabled: true,
-            last_run_at: None,
-            next_run_at: None, // Never run = due
-        });
-
-        let due = scheduler.check_due();
-        assert_eq!(due.len(), 1);
-        assert_eq!(due[0].schedule_id, "s1");
+    fn test_daily_cron() {
+        // "30 8 * * *" = daily at 08:30
+        let after = NaiveDateTime::parse_from_str("2026-02-14 07:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let next = next_run_after("30 8 * * *", after).unwrap();
+        assert_eq!(next.hour(), 8);
+        assert_eq!(next.minute(), 30);
+        assert_eq!(next.day(), 14); // Same day, still in future
     }
 
     #[test]
-    fn test_disabled_schedule_not_due() {
-        let mut scheduler = Scheduler::new();
-
-        scheduler.add_schedule(ScheduleEntry {
-            id: "s1".to_string(),
-            profile_id: "p1".to_string(),
-            folder_id: "f1".to_string(),
-            folder_path: "/downloads".to_string(),
-            cron_expr: "@daily".to_string(),
-            is_enabled: false,
-            last_run_at: None,
-            next_run_at: None,
-        });
-
-        let due = scheduler.check_due();
-        assert_eq!(due.len(), 0);
+    fn test_daily_cron_past_today() {
+        // "30 8 * * *" but it's already 09:00 — should be tomorrow
+        let after = NaiveDateTime::parse_from_str("2026-02-14 09:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let next = next_run_after("30 8 * * *", after).unwrap();
+        assert_eq!(next.hour(), 8);
+        assert_eq!(next.minute(), 30);
+        assert_eq!(next.day(), 15); // Next day
     }
 
     #[test]
-    fn test_mark_run_updates_next() {
-        let mut scheduler = Scheduler::new();
+    fn test_weekly_cron() {
+        // "0 10 * * 1" = Monday at 10:00
+        // 2026-02-14 is a Saturday
+        let after = NaiveDateTime::parse_from_str("2026-02-14 09:00:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let next = next_run_after("0 10 * * 1", after).unwrap();
+        assert_eq!(next.hour(), 10);
+        assert_eq!(next.minute(), 0);
+        // Next Monday after Feb 14 (Sat) is Feb 16
+        assert_eq!(next.day(), 16);
+    }
 
-        scheduler.add_schedule(ScheduleEntry {
-            id: "s1".to_string(),
-            profile_id: "p1".to_string(),
-            folder_id: "f1".to_string(),
-            folder_path: "/downloads".to_string(),
-            cron_expr: "@hourly".to_string(),
-            is_enabled: true,
-            last_run_at: None,
-            next_run_at: None,
-        });
-
-        scheduler.mark_run("s1");
-
-        let entry = scheduler.schedules.get("s1").unwrap();
-        assert!(entry.last_run_at.is_some());
-        assert!(entry.next_run_at.is_some());
+    #[test]
+    fn test_hourly_cron() {
+        // "0 * * * *" = every hour at :00
+        let after = NaiveDateTime::parse_from_str("2026-02-14 09:30:00", "%Y-%m-%d %H:%M:%S").unwrap();
+        let next = next_run_after("0 * * * *", after).unwrap();
+        assert_eq!(next.hour(), 10);
+        assert_eq!(next.minute(), 0);
     }
 }

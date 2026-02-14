@@ -9,161 +9,211 @@ DeskCraft/
 │   ├── PROJECT_STRUCTURE.md
 │   └── BACKLOG.md
 │
-├── src-tauri/                          # Backend Rust (Tauri)
+├── installer/                             # Inno Setup installer
+│   ├── deskcraft.iss                      # Script de instalação
+│   ├── wizard-image.bmp                   # Imagem lateral do wizard
+│   ├── wizard-small.bmp                   # Ícone pequeno do wizard
+│   └── Output/
+│       └── DeskCraft-Setup-1.0.0.exe      # Instalador gerado
+│
+├── scripts/                               # Scripts utilitários
+│   ├── generate_icons.py                  # Gera ícones do app (ICO + PNG)
+│   └── generate_wizard_images.py          # Gera imagens BMP do wizard
+│
+├── src-tauri/                             # Backend Rust (Tauri v2)
 │   ├── Cargo.toml
 │   ├── tauri.conf.json
 │   ├── build.rs
-│   ├── icons/                          # App icons
-│   ├── migrations/                     # SQL migrations
-│   │   ├── 001_initial_schema.sql
-│   │   ├── 002_seed_defaults.sql
-│   │   └── 003_help_and_tour.sql
+│   ├── icons/                             # App icons (ICO + PNG 32-512px)
+│   ├── migrations/                        # SQL migrations
+│   │   ├── 001_initial_schema.sql         # 16 tabelas (profiles, rules, schedules, etc.)
+│   │   ├── 002_seed_defaults.sql          # Configurações e perfil padrão
+│   │   ├── 003_help_and_tour.sql          # Dados do tour e help
+│   │   ├── 004_default_rules.sql          # 6 regras padrão (imagens, docs, etc.)
+│   │   └── 005_extra_rules.sql            # 4 regras extras (fontes, código, design, e-books)
 │   └── src/
-│       ├── main.rs                     # Entry point
-│       ├── lib.rs                      # Module declarations
-│       ├── commands/                   # Tauri IPC commands
+│       ├── main.rs                        # Entry point
+│       ├── lib.rs                         # Módulos + IPC commands + scheduler loop
+│       ├── commands/                      # Tauri IPC commands (37 comandos)
 │       │   ├── mod.rs
-│       │   ├── organizer_commands.rs
-│       │   ├── rule_commands.rs
-│       │   ├── profile_commands.rs
-│       │   ├── settings_commands.rs
-│       │   ├── help_commands.rs
-│       │   ├── tour_commands.rs
-│       │   └── tips_commands.rs
-│       ├── db/                         # SQLite layer
+│       │   ├── organizer_commands.rs      # scan, simulate, execute, rollback
+│       │   ├── rule_commands.rs           # CRUD de regras, condições e ações
+│       │   ├── profile_commands.rs        # CRUD de perfis + associação de regras
+│       │   ├── schedule_commands.rs       # CRUD de agendamentos
+│       │   ├── settings_commands.rs       # get/set configurações
+│       │   ├── watched_folder_commands.rs # Gerenciar pastas monitoradas
+│       │   ├── history_commands.rs        # Listar execuções e itens
+│       │   ├── help_commands.rs           # Favoritos e views do Help Center
+│       │   ├── tour_commands.rs           # Estado do product tour
+│       │   ├── tips_commands.rs           # Engine de dicas contextuais
+│       │   └── license_commands.rs        # Ativação e verificação de licença
+│       ├── db/                            # SQLite layer (rusqlite)
 │       │   ├── mod.rs
-│       │   ├── connection.rs
-│       │   ├── migrations.rs
-│       │   ├── models.rs
+│       │   ├── connection.rs              # Init, WAL mode, foreign keys
+│       │   ├── migrations.rs              # Runner de migrations incremental
+│       │   ├── models.rs                  # Structs (Profile, Rule, Schedule, etc.)
 │       │   └── queries/
 │       │       ├── mod.rs
-│       │       ├── rules.rs
-│       │       ├── profiles.rs
-│       │       ├── runs.rs
-│       │       ├── settings.rs
-│       │       ├── help.rs
-│       │       ├── tour.rs
-│       │       └── tips.rs
-│       ├── organizer/                  # Core engine
+│       │       ├── rules.rs               # Regras + condições + ações
+│       │       ├── profiles.rs            # Perfis + profile_rules
+│       │       ├── runs.rs                # Histórico de execuções
+│       │       ├── schedules.rs           # Agendamentos + cron + next_run_at
+│       │       ├── settings.rs            # Chave-valor de configurações
+│       │       ├── watched_folders.rs     # Pastas monitoradas + find_or_create
+│       │       ├── help.rs                # Favoritos e visualizações
+│       │       ├── tour.rs                # Estado do tour
+│       │       └── tips.rs                # Estado das dicas
+│       ├── organizer/                     # Core engine de organização
 │       │   ├── mod.rs
-│       │   ├── scanner.rs
-│       │   ├── simulator.rs
-│       │   ├── executor.rs
-│       │   ├── rollback.rs
-│       │   └── conflict.rs
-│       ├── rules/                      # Rule engine
+│       │   ├── scanner.rs                 # Escaneia pasta → lista de FileEntry
+│       │   ├── simulator.rs               # Simula regras → SimulationResult
+│       │   ├── executor.rs                # Executa movimentações reais
+│       │   ├── rollback.rs                # Reverte uma execução
+│       │   └── conflict.rs                # Estratégias de conflito (suffix, skip, overwrite)
+│       ├── rules/                         # Rule engine
 │       │   ├── mod.rs
-│       │   ├── engine.rs
-│       │   ├── conditions.rs
-│       │   └── actions.rs
-│       ├── watcher/                    # File watcher
+│       │   ├── engine.rs                  # Avalia regras contra arquivos
+│       │   ├── conditions.rs              # Matchers (extensão, tamanho, nome, data)
+│       │   └── actions.rs                 # Ações (mover, renomear, tag)
+│       ├── watcher/                       # File watcher + scheduler
 │       │   ├── mod.rs
-│       │   ├── fs_watcher.rs
-│       │   └── scheduler.rs
-│       ├── tips/                       # Tips engine
+│       │   ├── fs_watcher.rs              # Watcher de filesystem (notify crate)
+│       │   └── scheduler.rs               # Parser de cron + cálculo de next_run_at
+│       ├── tips/                          # Tips engine
 │       │   ├── mod.rs
-│       │   ├── engine.rs
-│       │   └── heuristics.rs
-│       ├── logger/                     # Logging
+│       │   ├── engine.rs                  # Avaliação de dicas contextuais
+│       │   └── heuristics.rs              # Heurísticas para sugestões
+│       ├── license/                       # Sistema de licenciamento
 │       │   ├── mod.rs
-│       │   └── service.rs
-│       └── license/                    # License validation
+│       │   ├── service.rs                 # API client (verify + activate)
+│       │   ├── hardware.rs                # Fingerprint SHA-256 (CPU + MB + hostname)
+│       │   ├── storage.rs                 # Persistência em license.dat (base64)
+│       │   └── validator.rs
+│       └── logger/                        # Logging
 │           ├── mod.rs
-│           └── validator.rs
+│           └── service.rs
 │
-├── src/                                # Frontend React
-│   ├── main.tsx                        # Entry point
-│   ├── App.tsx                         # Root component
+├── src/                                   # Frontend React + TypeScript
+│   ├── main.tsx                           # Entry point
+│   ├── App.tsx                            # Root + ContentRouter (view routing)
+│   ├── vite-env.d.ts
 │   ├── assets/
+│   │   ├── logo.png                       # Logo do DeskCraft
 │   │   └── styles/
-│   │       └── globals.css             # Tailwind + custom
+│   │       └── globals.css                # Tailwind + custom + animações
 │   ├── components/
-│   │   ├── ui/                         # Primitivos reutilizáveis
+│   │   ├── ui/                            # Primitivos reutilizáveis (12 componentes)
+│   │   │   ├── index.ts
+│   │   │   ├── Badge.tsx
 │   │   │   ├── Button.tsx
 │   │   │   ├── Card.tsx
 │   │   │   ├── Dialog.tsx
+│   │   │   ├── EmptyState.tsx
 │   │   │   ├── Input.tsx
+│   │   │   ├── Progress.tsx
 │   │   │   ├── Select.tsx
 │   │   │   ├── Switch.tsx
-│   │   │   ├── Badge.tsx
-│   │   │   ├── Tooltip.tsx
-│   │   │   ├── Progress.tsx
-│   │   │   └── Toast.tsx
-│   │   ├── layout/                     # Layout components
-│   │   │   ├── Sidebar.tsx
-│   │   │   ├── Header.tsx
-│   │   │   ├── TrayMenu.tsx
+│   │   │   ├── Toast.tsx
+│   │   │   └── Tooltip.tsx
+│   │   ├── layout/                        # Layout
+│   │   │   ├── index.ts
+│   │   │   ├── Sidebar.tsx                # Navegação lateral com logo
+│   │   │   ├── Header.tsx                 # Barra superior
 │   │   │   └── MainLayout.tsx
-│   │   ├── dashboard/                  # Dashboard
+│   │   ├── dashboard/                     # Dashboard
+│   │   │   ├── index.ts
 │   │   │   ├── DashboardView.tsx
 │   │   │   ├── QuickActions.tsx
+│   │   │   ├── QuickStats.tsx
 │   │   │   ├── RecentRuns.tsx
-│   │   │   └── FolderStats.tsx
-│   │   ├── rules/                      # Rule Builder
+│   │   │   └── FolderOverview.tsx
+│   │   ├── rules/                         # Rule Builder
+│   │   │   ├── index.ts
 │   │   │   ├── RuleListView.tsx
-│   │   │   ├── RuleBuilder.tsx
+│   │   │   ├── RuleBuilder.tsx            # Editor visual de regras IF/THEN
+│   │   │   ├── RulePreview.tsx
 │   │   │   ├── ConditionRow.tsx
 │   │   │   └── ActionRow.tsx
-│   │   ├── profiles/                   # Perfis
+│   │   ├── profiles/                      # Perfis
+│   │   │   ├── index.ts
 │   │   │   ├── ProfileListView.tsx
-│   │   │   └── ProfileEditor.tsx
-│   │   ├── history/                    # Histórico
+│   │   │   ├── ProfileEditor.tsx
+│   │   │   └── ProfileCard.tsx
+│   │   ├── simulation/                    # Simulação
+│   │   │   ├── index.ts
+│   │   │   ├── SimulationView.tsx
+│   │   │   └── SimulationPreview.tsx
+│   │   ├── history/                       # Histórico de execuções
+│   │   │   ├── index.ts
 │   │   │   ├── HistoryView.tsx
 │   │   │   ├── RunDetail.tsx
 │   │   │   └── RollbackDialog.tsx
-│   │   ├── simulation/                 # Simulação
-│   │   │   ├── SimulationView.tsx
-│   │   │   └── SimulationPreview.tsx
-│   │   ├── settings/                   # Configurações
+│   │   ├── scheduling/                    # Agendamento
+│   │   │   ├── index.ts
+│   │   │   └── SchedulingView.tsx
+│   │   ├── settings/                      # Configurações
+│   │   │   ├── index.ts
 │   │   │   ├── SettingsView.tsx
 │   │   │   ├── GeneralSettings.tsx
 │   │   │   ├── FolderSettings.tsx
-│   │   │   └── LicenseSettings.tsx
-│   │   ├── help/                       # Help Center
+│   │   │   ├── ConflictSettings.tsx
+│   │   │   ├── TipsSettings.tsx
+│   │   │   ├── LicenseSettings.tsx
+│   │   │   └── AboutSection.tsx
+│   │   ├── help/                          # Help Center
+│   │   │   ├── index.ts
 │   │   │   ├── HelpView.tsx
 │   │   │   ├── ArticleViewer.tsx
 │   │   │   ├── HelpSearch.tsx
 │   │   │   ├── HelpSidebar.tsx
 │   │   │   └── HelpFavorites.tsx
-│   │   ├── tour/                       # Product Tour
+│   │   ├── tour/                          # Product Tour
+│   │   │   ├── index.ts
 │   │   │   ├── TourProvider.tsx
+│   │   │   ├── TourController.tsx
 │   │   │   ├── TourOverlay.tsx
 │   │   │   └── TourStep.tsx
-│   │   └── tips/                       # Tips
-│   │       ├── TipsProvider.tsx
-│   │       └── TipBanner.tsx
-│   ├── hooks/                          # Custom hooks
-│   │   ├── useRules.ts
-│   │   ├── useProfiles.ts
-│   │   ├── useOrganizer.ts
-│   │   ├── useSettings.ts
+│   │   ├── tips/                          # Dicas contextuais
+│   │   │   ├── index.ts
+│   │   │   ├── TipsProvider.tsx
+│   │   │   ├── TipBanner.tsx
+│   │   │   └── TipCard.tsx
+│   │   └── license/                       # Tela de login/ativação
+│   │       ├── index.ts
+│   │       └── LoginView.tsx
+│   ├── hooks/                             # Custom hooks
 │   │   ├── useHelp.ts
-│   │   ├── useTour.ts
 │   │   └── useTips.ts
-│   ├── stores/                         # Zustand stores
-│   │   ├── appStore.ts
-│   │   ├── ruleStore.ts
-│   │   ├── profileStore.ts
-│   │   ├── historyStore.ts
-│   │   ├── settingsStore.ts
-│   │   ├── helpStore.ts
-│   │   ├── tourStore.ts
-│   │   └── tipsStore.ts
-│   ├── lib/                            # Utilities
-│   │   ├── tauri.ts                    # Tauri invoke wrappers
-│   │   ├── formatters.ts              # Date, size formatters
-│   │   └── constants.ts               # App constants
-│   ├── types/                          # TypeScript types
+│   ├── stores/                            # Zustand stores (11 stores)
+│   │   ├── index.ts                       # Re-exports
+│   │   ├── appStore.ts                    # currentView, theme, sidebar
+│   │   ├── ruleStore.ts                   # Regras CRUD
+│   │   ├── profileStore.ts               # Perfis CRUD
+│   │   ├── historyStore.ts               # Histórico de execuções
+│   │   ├── scheduleStore.ts              # Agendamentos CRUD
+│   │   ├── settingsStore.ts              # Configurações
+│   │   ├── licenseStore.ts               # Estado da licença
+│   │   ├── helpStore.ts                  # Help Center
+│   │   ├── tourStore.ts                  # Product Tour
+│   │   └── tipsStore.ts                  # Dicas
+│   ├── lib/                               # Utilitários
+│   │   ├── tauri.ts                       # Wrapper de invoke com fallback
+│   │   ├── formatters.ts                  # Formatadores de data/tamanho
+│   │   └── constants.ts                   # Constantes (VIEWS, etc.)
+│   ├── types/                             # TypeScript types
+│   │   ├── index.ts
 │   │   ├── rules.ts
 │   │   ├── profiles.ts
 │   │   ├── runs.ts
+│   │   ├── schedules.ts
 │   │   ├── settings.ts
+│   │   ├── license.ts
 │   │   ├── help.ts
 │   │   ├── tour.ts
 │   │   └── tips.ts
-│   └── content/                        # Help Center content
+│   └── content/                           # Conteúdo estático (pt-BR)
 │       ├── help/
-│       │   ├── index.json              # Article index + search data
+│       │   ├── index.json                 # Índice de artigos + dados de busca
 │       │   ├── getting-started.md
 │       │   ├── tutorial-rules.md
 │       │   ├── tutorial-simulation.md
@@ -174,44 +224,84 @@ DeskCraft/
 │       │   ├── glossary.md
 │       │   └── troubleshooting.md
 │       └── tour/
-│           └── steps.json              # Tour step definitions
+│           └── steps.json                 # 6 passos do product tour
 │
-├── index.html                          # Vite entry
+├── Logo.png                               # Logo original
+├── Logo_transparent.png                   # Logo com fundo transparente
+├── Logo_white.png                         # Logo branco (para ícones)
+├── index.html                             # Vite entry
 ├── package.json
+├── package-lock.json
 ├── tsconfig.json
+├── tsconfig.node.json
 ├── vite.config.ts
 ├── tailwind.config.ts
 ├── postcss.config.js
-├── .eslintrc.cjs
 ├── .prettierrc
-├── .gitignore
-└── README.md
+└── .gitignore
 ```
+
+## Números do Projeto
+
+| Métrica | Valor |
+|---|---|
+| Arquivos Rust (.rs) | 47 |
+| Arquivos TypeScript/React (.tsx/.ts) | 70+ |
+| Migrations SQL | 5 |
+| Comandos IPC (Tauri) | 37 |
+| Componentes UI | 12 |
+| Views/Telas | 10 |
+| Zustand Stores | 11 |
+| Regras padrão | 10 |
+| Artigos de ajuda (pt-BR) | 9 |
+| Passos do tour | 6 |
+
+## Stack
+
+| Camada | Tecnologias |
+|---|---|
+| **Backend** | Tauri v2, Rust, rusqlite, notify, chrono, regex, uuid, reqwest |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS, Zustand, Framer Motion |
+| **Banco** | SQLite (bundled via rusqlite), WAL mode |
+| **Ícones** | lucide-react |
+| **Instalador** | Inno Setup 6 + NSIS (Tauri) + MSI (WiX) |
+| **Licença** | API online (reqwest) + cache local (base64/JSON) |
 
 ## Padrões de Código
 
 ### Rust
 - **Formatter**: `rustfmt` (default)
-- **Linter**: `clippy` com `-D warnings`
-- **Error handling**: `thiserror` + `anyhow` para erros tipados
+- **Error handling**: `anyhow` para erros genéricos
 - **Naming**: snake_case para funções/variáveis, PascalCase para types/structs
+- **DB**: Queries raw SQL com `rusqlite::params![]`
 
 ### TypeScript/React
-- **Linter**: ESLint com config estrita
 - **Formatter**: Prettier (2 spaces, single quotes, trailing comma)
 - **Components**: Functional components com hooks
 - **State**: Zustand stores (sem Redux)
-- **Styling**: Tailwind CSS + CSS modules quando necessário
+- **Styling**: Tailwind CSS
 - **Naming**: camelCase para funções/variáveis, PascalCase para componentes
+- **Routing**: View-based via `appStore.currentView` (sem react-router)
 
 ### Commits
 - Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
-- Exemplos:
-  - `feat: add rule builder with IF/THEN conditions`
-  - `fix: resolve file conflict when destination exists`
-  - `refactor: extract scanner into separate module`
 
-### Testes
-- **Rust**: `#[cfg(test)]` inline + `tests/` directory para integration
-- **React**: Vitest + React Testing Library
-- **Coverage target**: 80% para core engine, 60% para UI
+## Build & Distribuição
+
+```bash
+# Desenvolvimento
+npx tauri dev
+
+# Build de produção (gera .exe + .msi + .nsis)
+npx tauri build
+
+# Instalador Inno Setup (requer build anterior)
+"C:/Program Files (x86)/Inno Setup 6/ISCC.exe" installer/deskcraft.iss
+```
+
+| Artefato | Tamanho | Caminho |
+|---|---|---|
+| Executável | ~13 MB | `src-tauri/target/release/deskcraft.exe` |
+| NSIS installer | ~4.8 MB | `src-tauri/target/release/bundle/nsis/DeskCraft_1.0.0_x64-setup.exe` |
+| MSI installer | ~4.8 MB | `src-tauri/target/release/bundle/msi/DeskCraft_1.0.0_x64_en-US.msi` |
+| Inno Setup | ~6.1 MB | `installer/Output/DeskCraft-Setup-1.0.0.exe` |
