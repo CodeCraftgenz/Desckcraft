@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -53,29 +53,40 @@ export function ProfileListView() {
   const [profileToDelete, setProfileToDelete] = useState<Profile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [ruleCounts, setRuleCounts] = useState<Record<string, number>>({});
+  const ruleCountsLoadedRef = useRef(false);
+  const loadingRuleCountsRef = useRef(false);
 
-  /* Load rule counts for all profiles */
-  const loadRuleCounts = useCallback(async () => {
-    const counts: Record<string, number> = {};
-    await Promise.all(
-      profiles.map(async (profile) => {
-        const rules = await getProfileRules(profile.id);
-        counts[profile.id] = rules.length;
-      }),
-    );
-    setRuleCounts(counts);
-  }, [profiles, getProfileRules]);
+  /* Load rule counts - stable reference, reads profiles from ref */
+  const loadRuleCounts = useCallback(async (profileList: Profile[]) => {
+    if (loadingRuleCountsRef.current) return;
+    loadingRuleCountsRef.current = true;
+    try {
+      const counts: Record<string, number> = {};
+      await Promise.all(
+        profileList.map(async (profile) => {
+          const rules = await getProfileRules(profile.id);
+          counts[profile.id] = rules.length;
+        }),
+      );
+      setRuleCounts(counts);
+      ruleCountsLoadedRef.current = true;
+    } finally {
+      loadingRuleCountsRef.current = false;
+    }
+  }, [getProfileRules]);
 
-  /* Initial load */
+  /* Initial load - only once */
   useEffect(() => {
     fetchRules();
-  }, [fetchRules]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* Load rule counts only on first render or when profile list IDs change */
+  const profileIds = profiles.map((p) => p.id).join(',');
   useEffect(() => {
     if (profiles.length > 0) {
-      loadRuleCounts();
+      loadRuleCounts(profiles);
     }
-  }, [profiles, loadRuleCounts]);
+  }, [profileIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Handlers */
   const handleCreateNew = () => {
@@ -122,9 +133,11 @@ export function ProfileListView() {
     }
   };
 
-  const handleEditorSaved = () => {
-    fetchProfiles();
-    // Rule counts will refresh via the profiles useEffect
+  const handleEditorSaved = async () => {
+    await fetchProfiles();
+    // Reload rule counts after profiles are refreshed
+    const updatedProfiles = useProfileStore.getState().profiles;
+    loadRuleCounts(updatedProfiles);
   };
 
   /* Empty state */

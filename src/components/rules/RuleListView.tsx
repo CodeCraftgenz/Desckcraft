@@ -204,7 +204,7 @@ export function RuleListView() {
     rules,
     isLoading,
     fetchRules,
-    updateRule,
+    toggleRule,
     deleteRule,
     clearSelected,
   } = useRuleStore();
@@ -268,13 +268,13 @@ export function RuleListView() {
   const handleToggle = useCallback(
     async (id: string, enabled: boolean) => {
       try {
-        await updateRule(id, { is_enabled: enabled });
+        await toggleRule(id, enabled);
         toast.success(enabled ? 'Regra ativada' : 'Regra desativada');
       } catch {
         toast.error('Erro ao alterar o estado da regra');
       }
     },
-    [updateRule, toast],
+    [toggleRule, toast],
   );
 
   const handleConfirmDelete = useCallback(async () => {

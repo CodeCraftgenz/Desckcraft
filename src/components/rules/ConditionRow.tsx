@@ -100,6 +100,42 @@ function getValueInputType(field: ConditionField): string {
   return 'text';
 }
 
+/* ---------- Date Presets (for archiving) ---------- */
+
+function getDatePresets(): { label: string; value: string }[] {
+  const now = new Date();
+  const presets: { label: string; value: string }[] = [];
+
+  // Last 6 months
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(year, d.getMonth() + 1, 0).getDate();
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    presets.push({
+      label: `${monthNames[d.getMonth()]} ${year}`,
+      value: `${year}-${month}-${String(lastDay).padStart(2, '0')}`,
+    });
+  }
+  return presets;
+}
+
+/* ---------- Extension Presets ---------- */
+
+const EXTENSION_PRESETS: { label: string; extensions: string }[] = [
+  { label: 'Imagens', extensions: 'jpg,jpeg,png,gif,bmp,webp,svg,ico,tiff' },
+  { label: 'Documentos', extensions: 'pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,rtf' },
+  { label: 'Videos', extensions: 'mp4,avi,mkv,mov,wmv,flv,webm,m4v' },
+  { label: 'Audio', extensions: 'mp3,wav,flac,aac,ogg,wma,m4a,opus' },
+  { label: 'Compactados', extensions: 'zip,rar,7z,tar,gz,bz2,xz,iso' },
+  { label: 'Instaladores', extensions: 'exe,msi,dmg,deb,rpm' },
+  { label: 'Codigo', extensions: 'py,js,ts,jsx,tsx,html,css,json,java,cpp,c,go,rs,php' },
+  { label: 'Fontes', extensions: 'ttf,otf,woff,woff2,eot' },
+  { label: 'Design', extensions: 'psd,ai,eps,xd,fig,sketch,blend,raw' },
+  { label: 'E-books', extensions: 'epub,mobi,azw,azw3,fb2,djvu,cbr,cbz' },
+];
+
 /* ---------- Types ---------- */
 
 export interface ConditionRowData {
@@ -243,6 +279,73 @@ export function ConditionRow({
             <X size={16} />
           </button>
         </div>
+
+        {/* Date presets - for archiving rules */}
+        {(condition.field === 'modified_date' || condition.field === 'created_date') && (
+          <div className="mt-2">
+            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+              Arquivar antes de:
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {getDatePresets().map((preset) => {
+                const isActive = condition.value === preset.value && condition.operator === 'before';
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() =>
+                      onChange(condition.id, {
+                        value: preset.value,
+                        operator: 'before' as ConditionOperator,
+                      })
+                    }
+                    className={`
+                      px-2 py-0.5 text-[10px] font-medium rounded-md border transition-colors
+                      ${
+                        isActive
+                          ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400'
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600'
+                      }
+                    `}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Extension presets - quick select */}
+        {condition.field === 'extension' && (
+          <div className="mt-2">
+            <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">
+              Atalhos de extensao:
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {EXTENSION_PRESETS.map((preset) => {
+                const isActive = condition.value === preset.extensions;
+                return (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => onChange(condition.id, { value: preset.extensions })}
+                    className={`
+                      px-2 py-0.5 text-[10px] font-medium rounded-md border transition-colors
+                      ${
+                        isActive
+                          ? 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-300 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400'
+                          : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600'
+                      }
+                    `}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );

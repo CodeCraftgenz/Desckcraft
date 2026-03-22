@@ -108,6 +108,20 @@ pub fn update_rule(
         .ok_or_else(|| anyhow::anyhow!("Rule not found after update: {}", id))
 }
 
+/// Toggles the is_enabled flag for a rule and returns the updated rule.
+pub fn toggle_rule(conn: &Connection, id: &str, is_enabled: bool) -> Result<Rule> {
+    let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
+    conn.execute(
+        "UPDATE rules SET is_enabled = ?1, updated_at = ?2 WHERE id = ?3",
+        rusqlite::params![is_enabled, now, id],
+    )
+    .context("Failed to toggle rule")?;
+
+    get_rule(conn, id)?
+        .ok_or_else(|| anyhow::anyhow!("Rule not found after toggle: {}", id))
+}
+
 /// Deletes a rule by ID. Cascading deletes will remove conditions and actions.
 pub fn delete_rule(conn: &Connection, id: &str) -> Result<()> {
     conn.execute("DELETE FROM rules WHERE id = ?1", [id])

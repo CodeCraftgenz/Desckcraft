@@ -44,6 +44,17 @@ pub fn update_rule(
 }
 
 #[tauri::command]
+pub fn toggle_rule(
+    id: String,
+    is_enabled: bool,
+    state: State<AppState>,
+) -> Result<Rule, String> {
+    let conn = state.db.lock().map_err(|e| format!("Erro de acesso ao banco de dados: {}", e))?;
+    rules::toggle_rule(&conn, &id, is_enabled)
+        .map_err(|e| format!("Falha ao alternar regra: {}", e))
+}
+
+#[tauri::command]
 pub fn delete_rule(id: String, state: State<AppState>) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| format!("Erro de acesso ao banco de dados: {}", e))?;
     rules::delete_rule(&conn, &id).map_err(|e| format!("Falha ao excluir regra: {}", e))

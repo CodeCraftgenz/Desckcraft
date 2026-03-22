@@ -20,6 +20,7 @@ interface RuleState {
   fetchRuleDetails: (id: string) => Promise<void>;
   createRule: (name: string, description: string | null) => Promise<Rule>;
   updateRule: (id: string, data: Partial<Pick<Rule, 'name' | 'description' | 'is_enabled' | 'priority' | 'sort_order'>>) => Promise<void>;
+  toggleRule: (id: string, isEnabled: boolean) => Promise<void>;
   deleteRule: (id: string) => Promise<void>;
   addCondition: (
     ruleId: string,
@@ -106,6 +107,23 @@ export const useRuleStore = create<RuleState>()((set, get) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       set({ error: message, isLoading: false });
+    }
+  },
+
+  toggleRule: async (id, isEnabled) => {
+    try {
+      const updated = await tauriInvoke<Rule>('toggle_rule', { id, isEnabled });
+      set((state) => ({
+        rules: state.rules.map((r) => (r.id === id ? updated : r)),
+        selectedRule:
+          state.selectedRule?.id === id
+            ? { ...state.selectedRule, ...updated }
+            : state.selectedRule,
+      }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ error: message });
+      throw err;
     }
   },
 

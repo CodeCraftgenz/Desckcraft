@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   Check,
@@ -90,37 +90,44 @@ export function ProfileEditor({
   const isEditing = editingProfile !== null;
 
   /* Load data on open */
-  const loadData = useCallback(async () => {
-    // Ensure rules are loaded
-    if (allRules.length === 0) {
-      await fetchRules();
-    }
-
-    if (editingProfile) {
-      setName(editingProfile.name);
-      setSelectedIcon(editingProfile.icon);
-      setSelectedColor(editingProfile.color);
-
-      // Load assigned rules
-      const profileRules = await getProfileRules(editingProfile.id);
-      const ruleIdSet = new Set(profileRules.map((r: Rule) => r.id));
-      setAssignedRuleIds(ruleIdSet);
-      setOriginalRuleIds(new Set(ruleIdSet));
-    } else {
-      setName('');
-      setSelectedIcon('folder');
-      setSelectedColor('indigo');
-      setAssignedRuleIds(new Set());
-      setOriginalRuleIds(new Set());
-    }
-    setNameError('');
-  }, [editingProfile, allRules.length, fetchRules, getProfileRules]);
+  const loadDataRef = useRef(false);
 
   useEffect(() => {
-    if (isOpen) {
-      loadData();
+    if (!isOpen) {
+      loadDataRef.current = false;
+      return;
     }
-  }, [isOpen, loadData]);
+    if (loadDataRef.current) return;
+    loadDataRef.current = true;
+
+    const load = async () => {
+      // Ensure rules are loaded
+      if (allRules.length === 0) {
+        await fetchRules();
+      }
+
+      if (editingProfile) {
+        setName(editingProfile.name);
+        setSelectedIcon(editingProfile.icon);
+        setSelectedColor(editingProfile.color);
+
+        // Load assigned rules
+        const profileRules = await getProfileRules(editingProfile.id);
+        const ruleIdSet = new Set(profileRules.map((r: Rule) => r.id));
+        setAssignedRuleIds(ruleIdSet);
+        setOriginalRuleIds(new Set(ruleIdSet));
+      } else {
+        setName('');
+        setSelectedIcon('folder');
+        setSelectedColor('indigo');
+        setAssignedRuleIds(new Set());
+        setOriginalRuleIds(new Set());
+      }
+      setNameError('');
+    };
+
+    load();
+  }, [isOpen, editingProfile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Toggle rule assignment */
   const toggleRule = (ruleId: string) => {

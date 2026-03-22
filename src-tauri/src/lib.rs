@@ -59,6 +59,7 @@ pub fn run() {
             rule_commands::get_rule,
             rule_commands::create_rule,
             rule_commands::update_rule,
+            rule_commands::toggle_rule,
             rule_commands::delete_rule,
             rule_commands::get_rule_conditions,
             rule_commands::add_rule_condition,

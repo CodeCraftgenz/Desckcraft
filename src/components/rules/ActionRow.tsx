@@ -26,6 +26,8 @@ const SUBFOLDER_TEMPLATES = [
   { value: '{extension}', label: 'Por extensão ({extension})' },
   { value: '{year}/{month}', label: 'Por ano/mês ({year}/{month})' },
   { value: '{year}/{month}/{day}', label: 'Por ano/mês/dia ({year}/{month}/{day})' },
+  { value: 'Arquivo/{year}/{month}', label: 'Arquivar por mês (Arquivo/{year}/{month})' },
+  { value: 'Arquivo/{year}', label: 'Arquivar por ano (Arquivo/{year})' },
 ];
 
 const RENAME_HELPERS = [
