@@ -40,6 +40,13 @@
   "plugins": {
     "shell": {
       "open": true
+    },
+    "updater": {
+      "endpoints": [
+        "https://api.codecraftgenz.com.br/api/updates/deskcraft"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBRUIxQTA3RTk0MjIyMUEKUldRYUlrTHBCeHJyV3F6T1NZNEV6WFFDREZCcHQ3cTd3cVVPOVA4TTlNNGgyTHJLWktXeGxJZmwK"
     }
   }
 }
