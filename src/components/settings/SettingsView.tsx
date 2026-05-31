@@ -1,12 +1,11 @@
-import { useState, type ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, type ComponentType } from 'react';
+import { motion } from 'framer-motion';
 import {
   Settings,
   Settings2,
   FolderOpen,
   ShieldAlert,
   Lightbulb,
-  KeyRound,
   Info,
   type LucideIcon,
 } from 'lucide-react';
@@ -14,66 +13,58 @@ import { GeneralSettings } from './GeneralSettings';
 import { FolderSettings } from './FolderSettings';
 import { ConflictSettings } from './ConflictSettings';
 import { TipsSettings } from './TipsSettings';
-import { LicenseSettings } from './LicenseSettings';
 import { AboutSection } from './AboutSection';
+import { useT, STRINGS } from '@/lib/i18n';
 
 interface SettingsTab {
   id: string;
-  label: string;
+  labelKey: keyof typeof STRINGS;
   icon: LucideIcon;
   iconColor: string;
   iconBg: string;
-  component: ReactNode;
+  Component: ComponentType;
 }
 
 const SETTINGS_TABS: SettingsTab[] = [
   {
     id: 'general',
-    label: 'Geral',
+    labelKey: 'settings.general',
     icon: Settings2,
     iconColor: 'text-blue-500 dark:text-blue-400',
     iconBg: 'bg-blue-50 dark:bg-blue-500/10',
-    component: <GeneralSettings />,
+    Component: GeneralSettings,
   },
   {
     id: 'folders',
-    label: 'Pastas',
+    labelKey: 'settings.folders',
     icon: FolderOpen,
     iconColor: 'text-emerald-500 dark:text-emerald-400',
     iconBg: 'bg-emerald-50 dark:bg-emerald-500/10',
-    component: <FolderSettings />,
+    Component: FolderSettings,
   },
   {
     id: 'conflicts',
-    label: 'Conflitos',
+    labelKey: 'settings.conflicts',
     icon: ShieldAlert,
     iconColor: 'text-red-500 dark:text-red-400',
     iconBg: 'bg-red-50 dark:bg-red-500/10',
-    component: <ConflictSettings />,
+    Component: ConflictSettings,
   },
   {
     id: 'tips',
-    label: 'Dicas',
+    labelKey: 'settings.tips',
     icon: Lightbulb,
     iconColor: 'text-amber-500 dark:text-amber-400',
     iconBg: 'bg-amber-50 dark:bg-amber-500/10',
-    component: <TipsSettings />,
-  },
-  {
-    id: 'license',
-    label: 'Licença',
-    icon: KeyRound,
-    iconColor: 'text-violet-500 dark:text-violet-400',
-    iconBg: 'bg-violet-50 dark:bg-violet-500/10',
-    component: <LicenseSettings />,
+    Component: TipsSettings,
   },
   {
     id: 'about',
-    label: 'Sobre',
+    labelKey: 'settings.about',
     icon: Info,
     iconColor: 'text-gray-500 dark:text-gray-400',
     iconBg: 'bg-gray-100 dark:bg-gray-800',
-    component: <AboutSection />,
+    Component: AboutSection,
   },
 ];
 
@@ -88,9 +79,11 @@ const SETTINGS_TABS: SettingsTab[] = [
  * Sections: Geral, Pastas, Conflitos, Dicas, Licença, Sobre
  */
 export function SettingsView() {
+  const t = useT();
   const [activeTab, setActiveTab] = useState(SETTINGS_TABS[0].id);
 
-  const activeSection = SETTINGS_TABS.find((t) => t.id === activeTab);
+  const activeSection = SETTINGS_TABS.find((tab) => tab.id === activeTab);
+  const ActiveComponent = activeSection?.Component ?? GeneralSettings;
 
   return (
     <div className="space-y-6">
@@ -108,10 +101,10 @@ export function SettingsView() {
         </div>
         <div>
           <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            Configurações
+            {t('settings.title')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Personalize o comportamento e aparência do DeskCraft
+            {t('settings.subtitle')}
           </p>
         </div>
       </div>
@@ -123,6 +116,7 @@ export function SettingsView() {
           {SETTINGS_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const label = t(tab.labelKey);
 
             return (
               <button
@@ -181,7 +175,7 @@ export function SettingsView() {
                     }
                   `}
                 >
-                  {tab.label}
+                  {label}
                 </span>
               </button>
             );
@@ -189,18 +183,8 @@ export function SettingsView() {
         </nav>
 
         {/* Content area */}
-        <div className="flex-1 min-w-0">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: 12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -12 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-            >
-              {activeSection?.component}
-            </motion.div>
-          </AnimatePresence>
+        <div key={activeTab} className="flex-1 min-w-0">
+          <ActiveComponent />
         </div>
       </div>
     </div>

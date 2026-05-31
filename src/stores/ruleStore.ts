@@ -22,6 +22,7 @@ interface RuleState {
   updateRule: (id: string, data: Partial<Pick<Rule, 'name' | 'description' | 'is_enabled' | 'priority' | 'sort_order'>>) => Promise<void>;
   toggleRule: (id: string, isEnabled: boolean) => Promise<void>;
   deleteRule: (id: string) => Promise<void>;
+  reorderRules: (orderedIds: string[]) => Promise<void>;
   addCondition: (
     ruleId: string,
     field: ConditionField,
@@ -139,6 +140,29 @@ export const useRuleStore = create<RuleState>()((set, get) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       set({ error: message, isLoading: false });
+    }
+  },
+
+  reorderRules: async (orderedIds) => {
+    // Optimistic update: reorder local rules immediately
+    const prev = get().rules;
+    const idToRule = new Map(prev.map((r) => [r.id, r]));
+    const reordered = orderedIds
+      .map((id, idx) => {
+        const rule = idToRule.get(id);
+        return rule ? { ...rule, sort_order: idx } : null;
+      })
+      .filter((r): r is Rule => r !== null);
+    set({ rules: reordered });
+
+    try {
+      await tauriInvoke('reorder_rules', { orderedIds });
+    } catch (err) {
+      // Rollback on failure
+      set({ rules: prev });
+      const message = err instanceof Error ? err.message : String(err);
+      set({ error: message });
+      throw err;
     }
   },
 

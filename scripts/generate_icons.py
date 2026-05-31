@@ -1,228 +1,338 @@
-"""
-Gera o icone do DeskCraft em alta definicao.
-Estilo igual ao CodeGymCraft: fundo solido, sombra, supersampling 2048px.
+"""Generate DeskCraft icons from Instaldor.png with an HD 'D' letter.
+
+Uses saturation-based flood fill for perfect background removal,
+4x supersampling for crisp text, and premultiplied-alpha downscaling.
 """
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-import struct, io, os
+from collections import deque
+import numpy as np
+import struct
+import io
+import os
 
-SUPERSAMPLE = 2048
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SRC_IMG = os.path.join(BASE_DIR, "assets", "img", "Instaldor.png")
+ICONS_DIR = os.path.join(BASE_DIR, "src-tauri", "icons")
+INSTALLER_DIR = os.path.join(BASE_DIR, "installer")
+
+SS = 4
+MASTER_SIZE = 1024
+LETTER = "D"
 
 
-def create_master():
-    s = SUPERSAMPLE
-    # Light gray solid background (no transparency)
-    img = Image.new("RGBA", (s, s), (240, 240, 245, 255))
-    draw = ImageDraw.Draw(img)
+def remove_background(src_path):
+    """Remove background using saturation-based BFS from corners."""
+    img = Image.open(src_path).convert("RGBA")
+    arr = np.array(img)
+    h, w = arr.shape[:2]
 
-    margin = int(s * 0.04)
-    radius = int(s * 0.22)
+    r = arr[:, :, 0].astype(float)
+    g = arr[:, :, 1].astype(float)
+    b = arr[:, :, 2].astype(float)
+    max_rgb = np.maximum(r, np.maximum(g, b))
+    min_rgb = np.minimum(r, np.minimum(g, b))
+    sat = (max_rgb - min_rgb) / (max_rgb + 1e-10)
 
-    # --- Drop shadow behind the rounded rect ---
-    shadow = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(shadow)
-    off = int(s * 0.015)
-    sd.rounded_rectangle(
-        [(margin + off, margin + off), (s - margin + off, s - margin + off)],
-        radius=radius, fill=(0, 0, 0, 50),
-    )
-    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=int(s * 0.025)))
-    img = Image.alpha_composite(img, shadow)
+    visited = np.zeros((h, w), dtype=bool)
+    is_bg = np.zeros((h, w), dtype=bool)
+    queue = deque()
 
-    # --- Gradient rounded rect (purple top -> blue bottom) ---
-    rect_mask = Image.new("L", (s, s), 0)
-    rm = ImageDraw.Draw(rect_mask)
-    rm.rounded_rectangle(
-        [(margin, margin), (s - margin - 1, s - margin - 1)],
-        radius=radius, fill=255,
-    )
+    for cy, cx in [(0, 0), (0, w - 1), (h - 1, 0), (h - 1, w - 1)]:
+        for dy in range(10):
+            for dx in range(10):
+                sy = max(0, min(h - 1, cy + (dy if cy == 0 else -dy)))
+                sx = max(0, min(w - 1, cx + (dx if cx == 0 else -dx)))
+                if not visited[sy, sx]:
+                    queue.append((sy, sx))
 
-    gradient = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    for y in range(s):
-        ratio = y / s
-        r = int(150 * (1 - ratio) + 0 * ratio)
-        g = int(50 * (1 - ratio) + 120 * ratio)
-        b = int(200 * (1 - ratio) + 255 * ratio)
-        for x in range(s):
-            if rect_mask.getpixel((x, y)) > 0:
-                gradient.putpixel((x, y), (r, g, b, 255))
+    SAT_THRESHOLD = 0.10
 
-    img = Image.alpha_composite(img, gradient)
-    draw = ImageDraw.Draw(img)
+    while queue:
+        y, x = queue.popleft()
+        if visited[y, x]:
+            continue
+        visited[y, x] = True
 
-    # --- Constellation lines ---
-    def star_px(sx, sy):
-        return (int(margin + sx * (s - 2 * margin)), int(margin + sy * (s - 2 * margin)))
+        if sat[y, x] < SAT_THRESHOLD:
+            is_bg[y, x] = True
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if dy == 0 and dx == 0:
+                        continue
+                    ny, nx = y + dy, x + dx
+                    if 0 <= ny < h and 0 <= nx < w and not visited[ny, nx]:
+                        queue.append((ny, nx))
 
-    line_layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    ld = ImageDraw.Draw(line_layer)
-    lw = max(2, int(s * 0.002))
+    arr[is_bg] = [0, 0, 0, 0]
 
-    top_c = [(0.62, 0.12), (0.70, 0.08), (0.78, 0.14), (0.82, 0.06), (0.88, 0.18), (0.75, 0.22)]
-    for i in range(len(top_c) - 1):
-        ld.line([star_px(*top_c[i]), star_px(*top_c[i + 1])], fill=(255, 255, 255, 40), width=lw)
+    bg_mask = Image.fromarray((is_bg * 255).astype(np.uint8))
+    dilated = bg_mask.filter(ImageFilter.MaxFilter(13))
+    edge_zone = (np.array(dilated) > 128) & ~is_bg
 
-    bot_c = [(0.08, 0.58), (0.18, 0.52), (0.25, 0.62), (0.22, 0.68), (0.15, 0.70), (0.28, 0.78)]
-    for i in range(len(bot_c) - 1):
-        ld.line([star_px(*bot_c[i]), star_px(*bot_c[i + 1])], fill=(255, 255, 255, 40), width=lw)
+    edge_alpha = np.clip((sat - 0.08) / 0.22, 0.0, 1.0)
+    arr[edge_zone, 3] = (edge_alpha[edge_zone] * 255).astype(np.uint8)
 
-    img = Image.alpha_composite(img, line_layer)
-    draw = ImageDraw.Draw(img)
+    fully_transparent = arr[:, :, 3] == 0
+    arr[fully_transparent, :3] = 0
 
-    # --- Stars with glow ---
-    stars = [
-        (0.62, 0.12, 3), (0.70, 0.08, 2), (0.78, 0.14, 3),
-        (0.82, 0.06, 2), (0.88, 0.18, 2), (0.75, 0.22, 2),
-        (0.08, 0.58, 2), (0.18, 0.52, 3), (0.25, 0.62, 3),
-        (0.15, 0.70, 2), (0.28, 0.78, 2), (0.22, 0.68, 2),
-        (0.45, 0.35, 1), (0.55, 0.65, 1), (0.35, 0.85, 1),
-        (0.90, 0.45, 1), (0.05, 0.40, 1),
+    removed = is_bg.sum()
+    total = h * w
+    print(f"  Background removed: {removed}/{total} pixels ({removed / total * 100:.1f}%)")
+    return Image.fromarray(arr)
+
+
+def _pick_font(size_px):
+    """Pick the first available bold font at the requested pixel size."""
+    candidates = [
+        "C:/Windows/Fonts/segoeuib.ttf",
+        "C:/Windows/Fonts/arialbd.ttf",
+        "C:/Windows/Fonts/calibrib.ttf",
+        "C:/Windows/Fonts/impact.ttf",
     ]
-    for sx, sy, size in stars:
-        px, py = star_px(sx, sy)
-        r = int(s * 0.003 * size)
-        glow = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-        gd = ImageDraw.Draw(glow)
-        gd.ellipse([(px - r * 3, py - r * 3), (px + r * 3, py + r * 3)], fill=(255, 255, 255, 30))
-        glow = glow.filter(ImageFilter.GaussianBlur(radius=r * 2))
-        img = Image.alpha_composite(img, glow)
-        draw = ImageDraw.Draw(img)
-        draw.ellipse([(px - r, py - r), (px + r, py + r)], fill=(255, 255, 255, 220))
-
-    # --- Letter D ---
-    font_size = int(s * 0.48)
-    font = None
-    for fp in ["C:/Windows/Fonts/segoeuib.ttf", "C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/arialbd.ttf"]:
+    for fp in candidates:
         if os.path.exists(fp):
-            font = ImageFont.truetype(fp, font_size)
-            break
-    if font is None:
-        font = ImageFont.load_default()
-
-    text = "D"
-    bbox = draw.textbbox((0, 0), text, font=font)
-    tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    tx = (s - tw) // 2 - bbox[0]
-    ty = (s - th) // 2 - bbox[1] - int(s * 0.02)
-
-    # Shadow
-    shadow_layer = Image.new("RGBA", (s, s), (0, 0, 0, 0))
-    sd2 = ImageDraw.Draw(shadow_layer)
-    sd2.text((tx + 6, ty + 8), text, fill=(0, 0, 0, 70), font=font)
-    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=10))
-    img = Image.alpha_composite(img, shadow_layer)
-    draw = ImageDraw.Draw(img)
-
-    # White D
-    draw.text((tx, ty), text, fill=(255, 255, 255, 255), font=font)
-
-    return img
+            try:
+                return ImageFont.truetype(fp, size_px), os.path.basename(fp)
+            except Exception:
+                pass
+    raise RuntimeError("No suitable bold font found")
 
 
-def build_ico(images_dict, output_path):
+def create_hd_master(src_or_path):
+    """Create a high-quality master icon at 4096x4096 with letter + soft shadow.
+    Used for sizes >= 64px where supersampled downscale produces best results.
+    Accepts either a path (str) or an already-clean RGBA Image.
+    """
+    render_size = MASTER_SIZE * SS
+
+    if isinstance(src_or_path, str):
+        src = remove_background(src_or_path)
+    else:
+        src = src_or_path
+    master = src.resize((render_size, render_size), Image.LANCZOS)
+
+    font_size = int(render_size * 0.52)
+    font, font_name = _pick_font(font_size)
+    print(f"  Master font: {font_name} at {font_size}px")
+
+    text_layer = Image.new("RGBA", (render_size, render_size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(text_layer)
+
+    bbox = draw.textbbox((0, 0), LETTER, font=font)
+    text_w = bbox[2] - bbox[0]
+    text_h = bbox[3] - bbox[1]
+    x = (render_size - text_w) / 2 - bbox[0]
+    y = (render_size - text_h) / 2 - bbox[1]
+
+    shadow_layer = Image.new("RGBA", (render_size, render_size), (0, 0, 0, 0))
+    shadow_draw = ImageDraw.Draw(shadow_layer)
+    shadow_offset = int(render_size * 0.006)
+    shadow_draw.text(
+        (x + shadow_offset, y + shadow_offset),
+        LETTER,
+        fill=(0, 0, 0, 60),
+        font=font,
+    )
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=shadow_offset))
+
+    draw.text((x, y), LETTER, fill=(255, 255, 255, 245), font=font)
+
+    master = Image.alpha_composite(master, shadow_layer)
+    master = Image.alpha_composite(master, text_layer)
+
+    return master
+
+
+def render_small_icon(src_path_or_clean, size):
+    """Render a pixel-perfect small icon (<=48px) without the 4096px downscale.
+    Uses 2x local supersample, no shadow (shadows turn to mush at small sizes),
+    and a slightly larger letter ratio so the "D" stays readable.
+    """
+    ss = 2
+    render_size = size * ss
+
+    if isinstance(src_path_or_clean, str):
+        src = remove_background(src_path_or_clean)
+    else:
+        src = src_path_or_clean
+
+    bg = src.resize((render_size, render_size), Image.LANCZOS)
+
+    letter_ratio = 0.66 if size <= 24 else 0.60
+    font_size = int(render_size * letter_ratio)
+    font, _ = _pick_font(font_size)
+
+    text_layer = Image.new("RGBA", (render_size, render_size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(text_layer)
+    bbox = draw.textbbox((0, 0), LETTER, font=font)
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    x = (render_size - tw) / 2 - bbox[0]
+    y = (render_size - th) / 2 - bbox[1]
+    draw.text((x, y), LETTER, fill=(255, 255, 255, 255), font=font)
+
+    combined = Image.alpha_composite(bg, text_layer)
+    return downscale(combined, size)
+
+
+def downscale(master, size):
+    """Downscale with premultiplied alpha for artifact-free resizing."""
+    arr = np.array(master).astype(np.float32)
+    alpha = arr[:, :, 3:4] / 255.0
+    arr[:, :, :3] *= alpha
+
+    premult = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+    resized = premult.resize((size, size), Image.LANCZOS)
+
+    out = np.array(resized).astype(np.float32)
+    out_alpha = out[:, :, 3:4]
+    safe_alpha = np.maximum(out_alpha, 1.0)
+    out[:, :, :3] = out[:, :, :3] / safe_alpha * 255.0
+    out[:, :, :3] = np.clip(out[:, :, :3], 0, 255)
+
+    threshold = 25 if size <= 48 else (15 if size <= 128 else 8)
+    out[out[:, :, 3] < threshold] = [0, 0, 0, 0]
+
+    return Image.fromarray(out.astype(np.uint8))
+
+
+def create_ico_bmp_entry(img):
+    """Create a BMP (DIB) format entry for ICO — maximum Windows compatibility."""
+    arr = np.array(img)
+    h, w = arr.shape[:2]
+
+    and_row_bytes = ((w + 31) // 32) * 4
+    xor_size = w * h * 4
+    and_size = and_row_bytes * h
+
+    header = struct.pack(
+        "<IiiHHIIiiII",
+        40, w, h * 2, 1, 32, 0, xor_size + and_size, 0, 0, 0, 0,
+    )
+
+    flipped = arr[::-1]
+    bgra = np.stack(
+        [flipped[:, :, 2], flipped[:, :, 1], flipped[:, :, 0], flipped[:, :, 3]],
+        axis=-1,
+    ).astype(np.uint8)
+
+    and_mask = bytes(and_row_bytes * h)
+    return header + bgra.tobytes() + and_mask
+
+
+def create_ico(master, clean_src, output_path):
+    """Create a .ico with BMP entries (< 256px) and PNG (>= 256px).
+    Small sizes (<=48) are rendered pixel-perfect; large sizes use master downscale.
+    """
+    sizes = [16, 20, 24, 32, 40, 48, 64, 128, 256]
     entries = []
-    data_blocks = []
-    offset = 6 + 16 * len(images_dict)
-    for size in sorted(images_dict.keys()):
-        im = images_dict[size].convert("RGBA")
-        buf = io.BytesIO()
-        im.save(buf, format="PNG", optimize=True)
-        png_data = buf.getvalue()
-        w = 0 if size >= 256 else size
-        h = 0 if size >= 256 else size
-        entries.append(struct.pack("<BBBBHHII", w, h, 0, 0, 1, 32, len(png_data), offset))
-        data_blocks.append(png_data)
-        offset += len(png_data)
 
+    for size in sizes:
+        if size <= 48:
+            img = render_small_icon(clean_src, size)
+        else:
+            img = downscale(master, size)
+
+        if size >= 256:
+            buf = io.BytesIO()
+            img.save(buf, format="PNG", optimize=True)
+            entries.append((size, buf.getvalue(), True))
+        else:
+            bmp_data = create_ico_bmp_entry(img)
+            entries.append((size, bmp_data, False))
+
+    num = len(entries)
     with open(output_path, "wb") as f:
-        f.write(struct.pack("<HHH", 0, 1, len(images_dict)))
-        for e in entries:
-            f.write(e)
-        for d in data_blocks:
-            f.write(d)
+        f.write(struct.pack("<HHH", 0, 1, num))
+        data_offset = 6 + num * 16
+        for size, data, _is_png in entries:
+            w = 0 if size >= 256 else size
+            h = 0 if size >= 256 else size
+            f.write(struct.pack("<BBBBHHII", w, h, 0, 0, 1, 32, len(data), data_offset))
+            data_offset += len(data)
+        for _, data, _ in entries:
+            f.write(data)
+
+    print(f"  icon.ico ({len(entries)} sizes: {', '.join(str(s) for s, _, _ in entries)})")
 
 
-# === MAIN ===
-if __name__ == "__main__":
-    print("Generating master 2048x2048...")
-    master = create_master()
+def main():
+    print(f"Generating HD DeskCraft icons (letter '{LETTER}')...")
+    print(f"  Supersampling: {SS}x ({MASTER_SIZE * SS}x{MASTER_SIZE * SS})")
 
-    # Reference PNGs
-    for sz in [256, 512, 1024]:
-        master.resize((sz, sz), Image.LANCZOS).save(os.path.join(ROOT, f"icon_bg_{sz}.png"), optimize=True)
-    print("Saved icon_bg_*.png")
+    clean_src = remove_background(SRC_IMG)
+    print(f"  Clean source: {clean_src.size}")
 
-    # Tauri icons
-    icons_dir = os.path.join(ROOT, "src-tauri", "icons")
-    for sz in [16, 32, 48, 64, 128, 256, 512]:
-        resized = master.resize((sz, sz), Image.LANCZOS)
-        if sz <= 48:
-            resized = resized.filter(ImageFilter.SHARPEN)
-        resized.save(os.path.join(icons_dir, f"{sz}x{sz}.png"), optimize=True)
-        print(f"  {sz}x{sz}.png")
+    master = create_hd_master(clean_src)
+    print(f"  Master created: {master.size}")
 
-    master.resize((1024, 1024), Image.LANCZOS).save(os.path.join(icons_dir, "icon.png"), optimize=True)
-    print("  icon.png (1024)")
-    master.resize((256, 256), Image.LANCZOS).save(os.path.join(icons_dir, "128x128@2x.png"), optimize=True)
-
-    store = {
-        "Square30x30Logo": 30, "Square44x44Logo": 44, "Square71x71Logo": 71,
-        "Square89x89Logo": 89, "Square107x107Logo": 107, "Square142x142Logo": 142,
-        "Square150x150Logo": 150, "Square284x284Logo": 284, "Square310x310Logo": 310,
-        "StoreLogo": 50,
+    # --- Tauri icon sizes ---
+    tauri_sizes = {
+        "icon.png": 1024,
+        "512x512.png": 512,
+        "256x256.png": 256,
+        "128x128@2x.png": 256,
+        "128x128.png": 128,
+        "64x64.png": 64,
+        "48x48.png": 48,
+        "32x32.png": 32,
+        "16x16.png": 16,
+        "Square310x310Logo.png": 310,
+        "Square284x284Logo.png": 284,
+        "Square150x150Logo.png": 150,
+        "Square142x142Logo.png": 142,
+        "Square107x107Logo.png": 107,
+        "Square89x89Logo.png": 89,
+        "Square71x71Logo.png": 71,
+        "Square44x44Logo.png": 44,
+        "Square30x30Logo.png": 30,
+        "StoreLogo.png": 50,
     }
-    for name, sz in store.items():
-        resized = master.resize((sz, sz), Image.LANCZOS)
-        if sz <= 50:
-            resized = resized.filter(ImageFilter.SHARPEN)
-        resized.save(os.path.join(icons_dir, f"{name}.png"), optimize=True)
-        print(f"  {name}.png ({sz})")
 
-    # ICO
-    ico_sizes = [16, 20, 24, 32, 40, 48, 64, 128, 256]
-    images_dict = {}
-    for sz in ico_sizes:
-        resized = master.resize((sz, sz), Image.LANCZOS)
-        if sz <= 48:
-            resized = resized.filter(ImageFilter.SHARPEN)
-        images_dict[sz] = resized
+    for filename, size in tauri_sizes.items():
+        if size <= 48:
+            img = render_small_icon(clean_src, size)
+        else:
+            img = downscale(master, size)
+        path = os.path.join(ICONS_DIR, filename)
+        img.save(path, "PNG", optimize=True)
+        print(f"  {filename} ({size}x{size})")
 
-    ico_path = os.path.join(icons_dir, "icon.ico")
-    build_ico(images_dict, ico_path)
-    print(f"  icon.ico ({os.path.getsize(ico_path):,} bytes, {len(ico_sizes)} sizes)")
+    # --- ICO ---
+    ico_path = os.path.join(ICONS_DIR, "icon.ico")
+    create_ico(master, clean_src, ico_path)
 
-    # Frontend logo
-    master.resize((512, 512), Image.LANCZOS).save(os.path.join(ROOT, "src", "assets", "logo.png"), optimize=True)
-    print("  src/assets/logo.png")
+    # --- macOS ---
+    icns_img = downscale(master, 1024)
+    icns_img.save(os.path.join(ICONS_DIR, "icon.icns"), "PNG", optimize=True)
+    print("  icon.icns (1024x1024 PNG)")
 
-    # Wizard images
-    inst_dir = os.path.join(ROOT, "installer")
-    wiz = Image.new("RGB", (164, 314), (255, 255, 255))
-    icon_120 = master.resize((120, 120), Image.LANCZOS).convert("RGBA")
-    bg_paste = Image.new("RGB", (120, 120), (255, 255, 255))
-    bg_paste.paste(icon_120, (0, 0), icon_120)
-    wiz.paste(bg_paste, (22, 40))
-    wd = ImageDraw.Draw(wiz)
-    ft = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 18)
-    bb = wd.textbbox((0, 0), "DeskCraft", font=ft)
-    wd.text(((164 - bb[2] + bb[0]) // 2, 170), "DeskCraft", fill=(80, 50, 150), font=ft)
-    fv = ImageFont.truetype("C:/Windows/Fonts/segoeui.ttf", 12)
-    bb2 = wd.textbbox((0, 0), "v1.0.0", font=fv)
-    wd.text(((164 - bb2[2] + bb2[0]) // 2, 195), "v1.0.0", fill=(120, 120, 140), font=fv)
-    for y in range(250, 314):
-        ratio = (y - 250) / 64
-        r = int(130 * (1 - ratio))
-        g = int(60 * (1 - ratio) + 100 * ratio)
-        b = int(220 * (1 - ratio) + 255 * ratio)
-        for x in range(164):
-            wiz.putpixel((x, y), (r, g, b))
-    wiz.save(os.path.join(inst_dir, "wizard-image.bmp"), "BMP")
-    print("  wizard-image.bmp")
+    # --- Installer wizard images ---
 
-    small = master.resize((55, 55), Image.LANCZOS).convert("RGBA")
-    bg_s = Image.new("RGB", (55, 55), (255, 255, 255))
-    bg_s.paste(small, (0, 0), small)
-    bg_s.save(os.path.join(inst_dir, "wizard-small.bmp"), "BMP")
-    print("  wizard-small.bmp")
+    wizard_img = Image.new("RGB", (164, 314), (50, 50, 120))
+    draw = ImageDraw.Draw(wizard_img)
+    for y in range(314):
+        t = y / 313
+        rv = int(110 * (1 - t) + 25 * t)
+        gv = int(60 * (1 - t) + 100 * t)
+        bv = int(200 * (1 - t) + 230 * t)
+        draw.line([(0, y), (163, y)], fill=(rv, gv, bv))
 
-    print("\nDone!")
+    icon_wiz = downscale(master, 140)
+    icon_wiz_rgb = Image.new("RGB", (140, 140), (80, 80, 180))
+    icon_wiz_rgb.paste(icon_wiz, (0, 0), icon_wiz)
+    wizard_img.paste(icon_wiz_rgb, (12, 55))
+    wizard_img.save(os.path.join(INSTALLER_DIR, "wizard-image.bmp"), "BMP")
+    print("  wizard-image.bmp (164x314)")
+
+    icon_small = downscale(master, 55)
+    small_rgb = Image.new("RGB", (55, 55), (255, 255, 255))
+    small_rgb.paste(icon_small, (0, 0), icon_small)
+    small_rgb.save(os.path.join(INSTALLER_DIR, "wizard-small.bmp"), "BMP")
+    print("  wizard-small.bmp (55x55)")
+
+    print("\nAll HD DeskCraft icons generated successfully!")
+
+
+if __name__ == "__main__":
+    main()

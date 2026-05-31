@@ -134,10 +134,8 @@ export function ProfileListView() {
   };
 
   const handleEditorSaved = async () => {
+    // Just refresh the list. The useEffect on profileIds will trigger loadRuleCounts.
     await fetchProfiles();
-    // Reload rule counts after profiles are refreshed
-    const updatedProfiles = useProfileStore.getState().profiles;
-    loadRuleCounts(updatedProfiles);
   };
 
   /* Empty state */

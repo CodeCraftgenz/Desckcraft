@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>DeskCraft — Plano de Testes QA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
+
+    /* PRINT */
+    @media print {
+      .no-print { display: none; }
+      .page-break { page-break-before: always; }
+      body { font-size: 10px; }
+      .cover { page-break-after: always; }
+    }
+
+    /* COVER */
+    .cover {
+      width: 100%; min-height: 100vh;
+      background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 50%, #0ea5e9 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #fff; padding: 60px 40px; text-align: center;
+    }
+    .cover .logo { font-size: 52px; font-weight: 900; letter-spacing: -2px; margin-bottom: 8px; }
+    .cover .logo span { color: #a5f3fc; }
+    .cover .subtitle { font-size: 18px; font-weight: 400; opacity: 0.85; margin-bottom: 48px; }
+    .cover .doc-title { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .cover .doc-version { font-size: 13px; opacity: 0.7; margin-bottom: 48px; }
+    .cover .meta { display: flex; gap: 48px; justify-content: center; }
+    .cover .meta-item { text-align: center; }
+    .cover .meta-item .label { font-size: 10px; opacity: 0.65; text-transform: uppercase; letter-spacing: 1px; }
+    .cover .meta-item .value { font-size: 16px; font-weight: 700; margin-top: 4px; }
+    .cover .badge {
+      display: inline-block; background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 999px;
+      padding: 6px 20px; font-size: 12px; margin-top: 40px;
+    }
+
+    /* LAYOUT */
+    .content { max-width: 900px; margin: 0 auto; padding: 40px 32px; }
+    h1.section-title {
+      font-size: 20px; font-weight: 800; color: #4f46e5;
+      border-bottom: 3px solid #4f46e5; padding-bottom: 8px;
+      margin: 36px 0 20px;
+    }
+    h2.area-title {
+      font-size: 14px; font-weight: 700; color: #fff;
+      background: linear-gradient(90deg, #6d28d9, #4f46e5);
+      padding: 8px 14px; border-radius: 6px; margin: 28px 0 12px;
+    }
+    h2.area-title .area-num { opacity: 0.7; margin-right: 8px; }
+
+    /* TOC */
+    .toc { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 20px 24px; margin: 20px 0 36px; }
+    .toc-title { font-size: 13px; font-weight: 700; color: #4f46e5; margin-bottom: 12px; }
+    .toc ol { padding-left: 18px; }
+    .toc li { padding: 3px 0; color: #4f46e5; font-size: 11px; }
+
+    /* SUMMARY CARDS */
+    .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0; }
+    .summary-card { background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px; padding: 14px 16px; text-align: center; }
+    .summary-card .num { font-size: 28px; font-weight: 800; color: #4f46e5; }
+    .summary-card .lbl { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+    /* TEST TABLE */
+    .test-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 10.5px; }
+    .test-table thead tr { background: #ede9fe; }
+    .test-table th { padding: 7px 10px; text-align: left; font-weight: 700; color: #4f46e5; border-bottom: 2px solid #c4b5fd; }
+    .test-table td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    .test-table tr:nth-child(even) td { background: #fafafa; }
+    .test-table tr:hover td { background: #f5f3ff; }
+    .test-table .id { font-weight: 700; color: #7c3aed; white-space: nowrap; }
+    .test-table .prio { white-space: nowrap; }
+    .test-table .check { text-align: center; font-size: 14px; color: #d1d5db; }
+
+    /* BADGES */
+    .badge-crit { background: #fee2e2; color: #b91c1c; border-radius: 999px; padding: 2px 8px; font-size: 9px; font-weight: 700; }
+    .badge-high { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 2px 8px; font-size: 9px; font-weight: 700; }
+    .badge-med  { background: #dbeafe; color: #1e40af; border-radius: 999px; padding: 2px 8px; font-size: 9px; font-weight: 700; }
+    .badge-low  { background: #d1fae5; color: #065f46; border-radius: 999px; padding: 2px 8px; font-size: 9px; font-weight: 700; }
+
+    /* INFO BOX */
+    .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 12px 0; font-size: 10.5px; color: #1e40af; }
+    .warn-box  { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 6px 6px 0; padding: 12px 16px; margin: 12px 0; font-size: 10.5px; color: #92400e; }
+
+    /* EXECUTION LOG TABLE */
+    .log-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .log-table th { background: #f3f4f6; padding: 6px 10px; text-align: left; border-bottom: 2px solid #d1d5db; }
+    .log-table td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; }
+    .log-table .check-col { width: 60px; text-align: center; }
+
+    /* FOOTER */
+    .footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 9px; color: #9ca3af; }
+
+    /* PRINT BTN */
+    .print-btn {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #4f46e5; color: #fff; border: none; border-radius: 8px;
+      padding: 12px 24px; font-size: 13px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 4px 20px rgba(79,70,229,0.4);
+    }
+    .print-btn:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+
+<!-- PRINT BUTTON -->
+<button class="print-btn no-print" onclick="window.print()">⬇ Salvar como PDF</button>
+
+<!-- ===================== CAPA ===================== -->
+<div class="cover">
+  <div class="logo">Desk<span>Craft</span></div>
+  <div class="subtitle">Organizador Inteligente de Arquivos</div>
+  <div class="doc-title">Plano de Testes QA</div>
+  <div class="doc-version">v1.0 — Versão do documento: Maio 2026</div>
+  <div class="meta">
+    <div class="meta-item">
+      <div class="label">Total de Casos</div>
+      <div class="value">121</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Áreas Cobertas</div>
+      <div class="value">12</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Criticidade</div>
+      <div class="value">Alta</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Plataforma</div>
+      <div class="value">Windows</div>
+    </div>
+  </div>
+  <div class="badge">Confidencial — Uso Interno</div>
+</div>
+
+<!-- ===================== CONTENT ===================== -->
+<div class="content">
+
+  <!-- ÍNDICE -->
+  <h1 class="section-title">Índice</h1>
+  <div class="toc">
+    <div class="toc-title">Sumário de Áreas de Teste</div>
+    <ol>
+      <li>Instalação e Inicialização</li>
+      <li>Licença e Ativação</li>
+      <li>Navegação e Layout</li>
+      <li>Regras — Criação e Gerenciamento</li>
+      <li>Regras — Condições e Ações</li>
+      <li>Perfis</li>
+      <li>Simulação (Dry-Run)</li>
+      <li>Execução de Organização</li>
+      <li>Histórico e Rollback</li>
+      <li>Agendamento</li>
+      <li>Configurações</li>
+      <li>Help Center e Tour</li>
+    </ol>
+  </div>
+
+  <!-- RESUMO -->
+  <h1 class="section-title">Resumo do Plano</h1>
+  <div class="summary-grid">
+    <div class="summary-card"><div class="num">121</div><div class="lbl">Total de Testes</div></div>
+    <div class="summary-card"><div class="num">34</div><div class="lbl">Críticos (P0)</div></div>
+    <div class="summary-card"><div class="num">52</div><div class="lbl">Alta Prioridade (P1)</div></div>
+    <div class="summary-card"><div class="num">35</div><div class="lbl">Média/Baixa (P2/P3)</div></div>
+  </div>
+
+  <div class="info-box">
+    <strong>Como usar este documento:</strong> Para cada teste, marque ✅ Passou, ❌ Falhou ou ⏭ Pulado. Anote o número do caso em defeitos encontrados. Testes P0 bloqueiam o release se falharem.
+  </div>
+  <div class="warn-box">
+    <strong>Pré-requisitos:</strong> App instalado e com licença válida (ou trial ativo). Ter uma pasta de teste com pelo menos 20 arquivos de tipos variados (PDF, PNG, DOCX, EXE, MP3, MP4).
+  </div>
+
+  <!-- ===================== ÁREA 1 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 1 — Instalação e Inicialização</h1>
+  <h2 class="area-title"><span class="area-num">01</span> Instalação e Primeiro Uso</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-01-001</td>
+        <td>Instalação limpa no Windows</td>
+        <td>Executar o instalador DeskCraft-Setup.exe em uma máquina limpa</td>
+        <td>App instala sem erros, cria atalho no desktop e menu Iniciar</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-002</td>
+        <td>Primeiro launch — tela de licença</td>
+        <td>Abrir o app pela primeira vez</td>
+        <td>Tela de ativação de licença é exibida antes do app principal</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-003</td>
+        <td>Tempo de abertura do app</td>
+        <td>Fechar e reabrir o app (com licença já ativa)</td>
+        <td>App abre em menos de 2 segundos</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-004</td>
+        <td>App inicia minimizado (configurado)</td>
+        <td>Ativar "Iniciar minimizado" em Configurações, reiniciar o app</td>
+        <td>App aparece apenas na bandeja do sistema, não na barra de tarefas</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-005</td>
+        <td>Iniciar com o Windows</td>
+        <td>Ativar "Iniciar com o sistema", reiniciar a máquina</td>
+        <td>DeskCraft inicia automaticamente junto ao Windows</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-006</td>
+        <td>Tour guiado no primeiro uso</td>
+        <td>Completar ativação de licença, verificar se tour inicia</td>
+        <td>Tour de 6 etapas é exibido automaticamente no primeiro uso</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-01-007</td>
+        <td>Desinstalar sem erros</td>
+        <td>Desinstalar via Painel de Controle do Windows</td>
+        <td>App removido completamente, sem arquivos residuais em Program Files</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 2 ===================== -->
+  <h1 class="section-title">Área 2 — Licença e Ativação</h1>
+  <h2 class="area-title"><span class="area-num">02</span> Sistema de Licença</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-02-001</td>
+        <td>Exibição do Hardware ID</td>
+        <td>Abrir tela de licença, localizar campo "Hardware ID"</td>
+        <td>Hardware ID único é exibido e pode ser copiado com clique</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-002</td>
+        <td>Ativação com e-mail válido</td>
+        <td>Inserir e-mail de uma licença válida, clicar em "Ativar"</td>
+        <td>Licença ativada com sucesso, app redireciona para Dashboard</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-003</td>
+        <td>Ativação com e-mail inválido</td>
+        <td>Inserir e-mail sem formato válido (ex: "teste@"), clicar em "Ativar"</td>
+        <td>Mensagem de erro de validação é exibida, app permanece na tela de licença</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-004</td>
+        <td>Trial — 14 dias com features Pro</td>
+        <td>Iniciar trial, verificar acesso a regras ilimitadas, watcher e agendamento</td>
+        <td>Todas as features Pro funcionam durante o trial</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-005</td>
+        <td>Logout de licença</td>
+        <td>Ir em Configurações → Licença, clicar em "Sair" / Logout</td>
+        <td>Licença removida, app retorna para tela de ativação</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-006</td>
+        <td>Hardware ID — cópia para clipboard</td>
+        <td>Clicar no botão de copiar ao lado do Hardware ID</td>
+        <td>Hardware ID copiado para área de transferência com feedback visual</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-007</td>
+        <td>Limite Free — máximo 3 regras</td>
+        <td>Na versão Free, criar 3 regras e tentar criar uma 4ª</td>
+        <td>Ao tentar criar a 4ª, app exibe mensagem de upgrade para Pro</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-02-008</td>
+        <td>Limite Free — apenas 1 perfil</td>
+        <td>Na versão Free, tentar criar um segundo perfil</td>
+        <td>App bloqueia e sugere upgrade</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 3 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 3 — Navegação e Layout</h1>
+  <h2 class="area-title"><span class="area-num">03</span> Interface e Navegação</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-03-001</td>
+        <td>Navegação pelo menu lateral</td>
+        <td>Clicar em cada item do menu (Dashboard, Regras, Perfis, Simulação, Histórico, Agendamento, Configurações, Ajuda)</td>
+        <td>Cada clique abre a view correta sem erro</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-002</td>
+        <td>Colapsar e expandir sidebar</td>
+        <td>Clicar no ícone de hamburguer para colapsar o menu lateral</td>
+        <td>Sidebar colapsa mostrando apenas ícones; expandir restaura os labels</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-003</td>
+        <td>Tema escuro</td>
+        <td>Ir em Configurações → Geral, selecionar Tema Escuro</td>
+        <td>Toda a interface muda para o tema escuro imediatamente</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-004</td>
+        <td>Tema claro</td>
+        <td>Selecionar Tema Claro em Configurações → Geral</td>
+        <td>Toda a interface muda para o tema claro imediatamente</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-005</td>
+        <td>Tema do sistema</td>
+        <td>Selecionar Tema "Sistema", alternar modo claro/escuro do Windows</td>
+        <td>App acompanha automaticamente o tema do sistema operacional</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-006</td>
+        <td>Idioma — Português</td>
+        <td>Selecionar pt-BR nas configurações</td>
+        <td>Toda a interface exibe textos em Português do Brasil</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-007</td>
+        <td>Idioma — Inglês</td>
+        <td>Selecionar en-US nas configurações</td>
+        <td>Toda a interface muda para inglês</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-008</td>
+        <td>Persistência de configurações de tema</td>
+        <td>Alterar o tema para escuro, fechar e reabrir o app</td>
+        <td>App reabre com o tema escuro (configuração persistida)</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-009</td>
+        <td>Dashboard exibe saudação por horário</td>
+        <td>Abrir o Dashboard em diferentes horários do dia</td>
+        <td>"Bom dia" (manhã), "Boa tarde" (tarde), "Boa noite" (noite)</td>
+        <td class="prio"><span class="badge-low">P3</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-03-010</td>
+        <td>Dashboard — cards de estatísticas</td>
+        <td>Criar 2 regras e 1 perfil, abrir Dashboard</td>
+        <td>Cards exibem os contadores corretos de regras, perfis e runs</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 4 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 4 — Regras: Criação e Gerenciamento</h1>
+  <h2 class="area-title"><span class="area-num">04</span> CRUD de Regras</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-04-001</td>
+        <td>Criar regra básica</td>
+        <td>Ir em Regras → clicar em "+", preencher nome e descrição, salvar</td>
+        <td>Regra aparece na lista com nome, descrição e status "ativa"</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-002</td>
+        <td>Criar regra sem nome</td>
+        <td>Abrir o Rule Builder, deixar o campo nome vazio, tentar salvar</td>
+        <td>Validação impede salvar, exibe mensagem de campo obrigatório</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-003</td>
+        <td>Editar regra existente</td>
+        <td>Clicar no ícone de editar (lápis) em uma regra da lista</td>
+        <td>Rule Builder abre com dados preenchidos da regra selecionada</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-004</td>
+        <td>Excluir regra</td>
+        <td>Clicar no ícone de lixeira de uma regra, confirmar no dialog</td>
+        <td>Regra removida da lista permanentemente</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-005</td>
+        <td>Cancelar exclusão de regra</td>
+        <td>Clicar em lixeira de uma regra, cancelar no dialog de confirmação</td>
+        <td>Dialog fecha, regra permanece na lista intacta</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-006</td>
+        <td>Habilitar/Desabilitar regra</td>
+        <td>Clicar no toggle switch de uma regra ativa</td>
+        <td>Regra muda de ativa para inativa (e vice-versa) com feedback visual imediato</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-007</td>
+        <td>Busca de regras por nome</td>
+        <td>Criar 3 regras com nomes distintos, usar a busca para filtrar por um nome</td>
+        <td>Lista exibe apenas as regras que correspondem ao termo buscado</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-008</td>
+        <td>Filtro por status (Ativas/Inativas)</td>
+        <td>Misturar regras ativas e inativas, usar filtro "Ativas" e depois "Inativas"</td>
+        <td>Cada filtro exibe apenas regras do status correspondente</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-009</td>
+        <td>Reordenar regras por drag-and-drop</td>
+        <td>Arrastar uma regra pelo handle de grip para uma nova posição na lista</td>
+        <td>Regra reposicionada, nova ordem persiste após recarregar</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-04-010</td>
+        <td>Estado vazio — sem regras</td>
+        <td>Apagar todas as regras, ver a lista de Regras</td>
+        <td>Estado vazio é exibido com mensagem e botão para criar a primeira regra</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 5 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 5 — Regras: Condições e Ações</h1>
+  <h2 class="area-title"><span class="area-num">05</span> Rule Builder — Condições</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-05-001</td>
+        <td>Condição por extensão</td>
+        <td>Criar condição: Campo=Extensão, Operador=Equals, Valor=".pdf"</td>
+        <td>Condição salva; simulação futura só aplica a arquivos .pdf</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-002</td>
+        <td>Condição por nome do arquivo</td>
+        <td>Criar condição: Campo=Nome do arquivo, Operador=Contains, Valor="relatorio"</td>
+        <td>Condição salva; simulação aplica apenas a arquivos com "relatorio" no nome</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-003</td>
+        <td>Condição por tamanho</td>
+        <td>Criar condição: Campo=Tamanho, Operador=Greater Than, Valor=10 (MB)</td>
+        <td>Condição salva; aplica apenas a arquivos maiores que 10MB</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-004</td>
+        <td>Condição por data de criação</td>
+        <td>Criar condição: Campo=Data Criação, Operador=Before, Valor=2024-01-01</td>
+        <td>Condição salva; aplica a arquivos criados antes de 01/01/2024</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-005</td>
+        <td>Condição por regex (Pro)</td>
+        <td>Criar condição: Campo=Regex, Valor="\d{4}-\d{2}-\d{2}" (padrão de data)</td>
+        <td>Condição salva; aplica a arquivos com padrão de data no nome</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-006</td>
+        <td>Regex inválido — validação</td>
+        <td>Inserir regex inválido (ex: "[sem fechar")</td>
+        <td>App exibe erro de regex inválido, impede salvar</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-007</td>
+        <td>Múltiplas condições com AND</td>
+        <td>Criar 2 condições: extensão=.pdf AND tamanho>5MB</td>
+        <td>Simulação aplica regra apenas a PDFs maiores que 5MB</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-008</td>
+        <td>Múltiplas condições com OR</td>
+        <td>Criar 2 condições: extensão=.pdf OR extensão=.docx</td>
+        <td>Simulação aplica regra a PDFs e DOCXs</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-009</td>
+        <td>Remover condição</td>
+        <td>Criar 2 condições, remover a segunda clicando no X</td>
+        <td>Apenas a primeira condição permanece na regra</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="area-title"><span class="area-num">05</span> Rule Builder — Ações</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-05-010</td>
+        <td>Ação: Mover para pasta</td>
+        <td>Criar ação "Mover para pasta", selecionar pasta destino via picker</td>
+        <td>Pasta selecionada aparece no campo de destino da ação</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-011</td>
+        <td>Ação: Mover para subpasta</td>
+        <td>Criar ação "Mover para subpasta", definir nome da subpasta</td>
+        <td>Arquivo será movido para subpasta dentro do destino</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-012</td>
+        <td>Ação: Renomear arquivo</td>
+        <td>Criar ação "Renomear", inserir padrão "{name}_{date}"</td>
+        <td>Padrão salvo; arquivo renomeado conforme template na execução</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-013</td>
+        <td>Ação: Adicionar tag</td>
+        <td>Criar ação "Adicionar tag", definir nome da tag</td>
+        <td>Tag adicionada ao arquivo na execução</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-014</td>
+        <td>Múltiplas ações em uma regra</td>
+        <td>Criar uma regra com 2 ações: Renomear + Mover para pasta</td>
+        <td>Ambas as ações são salvas e executadas em sequência</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-05-015</td>
+        <td>Ação sem destino — validação</td>
+        <td>Criar ação "Mover para pasta" sem selecionar o destino, tentar salvar</td>
+        <td>Validação impede salvar, exibe mensagem de campo obrigatório</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 6 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 6 — Perfis</h1>
+  <h2 class="area-title"><span class="area-num">06</span> Gerenciamento de Perfis</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-06-001</td>
+        <td>Criar perfil com nome e ícone</td>
+        <td>Clicar em "+", definir nome, selecionar ícone e cor, salvar</td>
+        <td>Perfil criado e exibido na lista com ícone e cor corretos</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-002</td>
+        <td>Ativar perfil</td>
+        <td>Clicar em um perfil inativo no card ou botão de ativar</td>
+        <td>Perfil fica marcado como ativo; perfil anterior fica inativo</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-003</td>
+        <td>Apenas um perfil ativo por vez</td>
+        <td>Ativar perfil A, depois ativar perfil B</td>
+        <td>Apenas o perfil B fica ativo; perfil A desativa automaticamente</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-004</td>
+        <td>Editar perfil</td>
+        <td>Clicar no lápis de um perfil, alterar nome e cor, salvar</td>
+        <td>Perfil atualizado com novos dados na lista</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-005</td>
+        <td>Excluir perfil</td>
+        <td>Clicar na lixeira de um perfil, confirmar exclusão</td>
+        <td>Perfil removido. Se era o ativo, app desativa sem perfil ativo</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-006</td>
+        <td>Adicionar regras ao perfil</td>
+        <td>Editar um perfil, ir na aba de regras, selecionar 2 regras existentes</td>
+        <td>Perfil agora mostra o contador de regras (ex: "2 regras")</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-007</td>
+        <td>Remover regra de perfil</td>
+        <td>Editar perfil, desselecionar uma regra associada</td>
+        <td>Regra desvinculada do perfil, contador atualizado</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-008</td>
+        <td>Seleção de ícone — 12 opções</td>
+        <td>Criar perfil, testar clique em cada um dos 12 ícones disponíveis</td>
+        <td>Cada ícone é selecionável e aparece no preview corretamente</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-06-009</td>
+        <td>Seleção de cor — 8 opções</td>
+        <td>Criar perfil, testar clique em cada uma das 8 cores disponíveis</td>
+        <td>Cor selecionada reflete no card do perfil</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 7 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 7 — Simulação (Dry-Run)</h1>
+  <h2 class="area-title"><span class="area-num">07</span> Simulação de Organização</h2>
+  <div class="info-box">
+    <strong>Configuração necessária:</strong> Ter pelo menos 1 perfil ativo com 1 regra configurada. Ter uma pasta de teste com arquivos de tipos variados (PDF, PNG, DOCX, EXE, MP3).
+  </div>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-07-001</td>
+        <td>Selecionar pasta para simular</td>
+        <td>Ir em Simulação, clicar em "Selecionar Pasta", escolher a pasta de teste</td>
+        <td>Pasta selecionada, caminho exibido na tela</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-002</td>
+        <td>Executar simulação</td>
+        <td>Com pasta selecionada, clicar em "Simular"</td>
+        <td>Resultado exibe: total de arquivos, arquivos que seriam movidos, arquivos sem match</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-003</td>
+        <td>Simulação não move arquivos reais</td>
+        <td>Executar simulação na pasta de teste, verificar pasta no Explorer</td>
+        <td>Nenhum arquivo foi movido na pasta de teste — apenas preview</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-004</td>
+        <td>Preview por arquivo com regra aplicada</td>
+        <td>Verificar a lista de resultados da simulação</td>
+        <td>Cada arquivo mostra: nome, regra que casou, ação prevista, destino</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-005</td>
+        <td>Arquivos sem match exibidos</td>
+        <td>Criar regra para .pdf, simular pasta com .pdf e .mp3</td>
+        <td>PDFs aparecem como "será movido"; MP3s aparecem como "sem regra"</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-006</td>
+        <td>Detecção de conflito na simulação</td>
+        <td>Criar arquivo com mesmo nome na pasta destino antes de simular</td>
+        <td>Arquivo conflitante é sinalizado na simulação com indicador visual</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-007</td>
+        <td>Simulação com perfil sem regras</td>
+        <td>Ativar um perfil vazio (sem regras), tentar simular</td>
+        <td>App exibe mensagem de aviso que o perfil ativo não tem regras configuradas</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-008</td>
+        <td>Botão "Executar" após simulação</td>
+        <td>Após ver resultado da simulação, clicar em "Executar"</td>
+        <td>Dialog de confirmação é exibido antes de executar</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-07-009</td>
+        <td>Contadores de resumo</td>
+        <td>Verificar o cabeçalho da simulação com arquivos de tipos mistos</td>
+        <td>Totais de "Total", "Com match" e "Sem match" batem com a contagem real</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 8 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 8 — Execução de Organização</h1>
+  <h2 class="area-title"><span class="area-num">08</span> Execução Real e Conflitos</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-08-001</td>
+        <td>Execução completa com sucesso</td>
+        <td>Simular, confirmar execução, aguardar conclusão</td>
+        <td>Arquivos movidos para as pastas corretas. Run salvo no histórico com status "Concluído"</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-002</td>
+        <td>Barra de progresso durante execução</td>
+        <td>Executar organização em pasta com muitos arquivos, observar progresso</td>
+        <td>Barra de progresso avança, contador de arquivos processados é atualizado</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-003</td>
+        <td>Cancelar execução em andamento</td>
+        <td>Iniciar execução em pasta grande, clicar em "Cancelar" durante o progresso</td>
+        <td>Execução para. Arquivos já movidos permanecem no destino. Run salvo com status parcial.</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-004</td>
+        <td>Conflito — estratégia Sufixo</td>
+        <td>Configurar estratégia "Sufixo", executar com arquivo conflitante no destino</td>
+        <td>Arquivo movido com sufixo numérico (ex: "relatorio_1.pdf")</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-005</td>
+        <td>Conflito — estratégia Pasta de Conflitos</td>
+        <td>Configurar estratégia "Pasta de Conflitos", executar com arquivo conflitante</td>
+        <td>Arquivo movido para subpasta "_conflitos" dentro do destino</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-006</td>
+        <td>Performance — 1000 arquivos em menos de 5s</td>
+        <td>Criar pasta com 1000 arquivos, executar organização e cronometrar</td>
+        <td>Execução completa em menos de 5 segundos (requisito não-funcional)</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-007</td>
+        <td>Arquivo em uso (travado)</td>
+        <td>Abrir um arquivo no Word/Photoshop, executar regra que o moveria</td>
+        <td>Arquivo pulado (skip) com erro registrado; execução continua nos demais</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-008</td>
+        <td>Pasta destino não existe</td>
+        <td>Configurar ação para pasta que não existe ainda no disco</td>
+        <td>App cria a pasta automaticamente e move o arquivo</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-009</td>
+        <td>Arquivos com nomes especiais</td>
+        <td>Criar arquivos com caracteres especiais (!@#$%&amp;), executar organização</td>
+        <td>Arquivos movidos corretamente sem erro</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-08-010</td>
+        <td>Resumo pós-execução</td>
+        <td>Após conclusão, ver tela de resumo</td>
+        <td>Exibe: total movidos, total pulados, erros, tempo de execução</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 9 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 9 — Histórico e Rollback</h1>
+  <h2 class="area-title"><span class="area-num">09</span> Histórico de Execuções</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-09-001</td>
+        <td>Run salvo no histórico</td>
+        <td>Executar organização, ir em Histórico</td>
+        <td>Run aparece no topo da lista com data, tipo (Manual) e status (Concluído)</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-002</td>
+        <td>Detalhe do run — lista de arquivos</td>
+        <td>Clicar em um run no histórico</td>
+        <td>Exibe todos os arquivos do run com: caminho original, destino, ação e status</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-003</td>
+        <td>Filtro por tipo de run</td>
+        <td>Misturar runs manuais, simulações e agendados, usar filtros</td>
+        <td>Filtros "Manual", "Simulação", "Agendado", "Watcher" exibem apenas o tipo correto</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-004</td>
+        <td>Rollback completo de um run</td>
+        <td>Executar organização, ir no histórico, clicar em "Desfazer" / Rollback, confirmar</td>
+        <td>Todos os arquivos movidos pelo run retornam ao local original</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-005</td>
+        <td>Rollback — run marcado como "Desfeito"</td>
+        <td>Após realizar rollback de um run, verificar seu status no histórico</td>
+        <td>Run aparece com status "Desfeito" (rolled_back)</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-006</td>
+        <td>Rollback de run com arquivo deletado</td>
+        <td>Executar, deletar manualmente um arquivo movido, tentar rollback</td>
+        <td>Rollback parcial — arquivos existentes são revertidos; arquivo deletado registra erro</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-007</td>
+        <td>Rollback de simulação não é possível</td>
+        <td>Ver runs de simulação no histórico, verificar se botão de rollback está presente</td>
+        <td>Runs de simulação NÃO têm botão de rollback (simulação não move arquivos)</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-008</td>
+        <td>Paginação do histórico (20 por página)</td>
+        <td>Gerar mais de 20 runs, verificar paginação</td>
+        <td>Histórico pagina corretamente, mostrando 20 por página com controles de navegação</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-009</td>
+        <td>Limite Free — 10 runs no histórico</td>
+        <td>Na versão Free, gerar mais de 10 runs</td>
+        <td>Histórico exibe apenas os 10 últimos runs; runs anteriores não acessíveis</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-09-010</td>
+        <td>Dashboard — últimos 5 runs</td>
+        <td>Ir ao Dashboard após executar alguns runs</td>
+        <td>Seção "Execuções Recentes" exibe os 5 últimos runs com status correto</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 10 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 10 — Agendamento</h1>
+  <h2 class="area-title"><span class="area-num">10</span> Schedules e Automação</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-10-001</td>
+        <td>Criar agendamento diário</td>
+        <td>Ir em Agendamento → "+", selecionar perfil e pasta, frequência "Diário", definir horário, salvar</td>
+        <td>Agendamento criado e listado com próxima execução calculada corretamente</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-002</td>
+        <td>Criar agendamento semanal</td>
+        <td>Criar agendamento com frequência "Semanal", selecionar dia da semana</td>
+        <td>Próxima execução calculada para o dia da semana correto</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-003</td>
+        <td>Criar agendamento por hora</td>
+        <td>Criar agendamento com frequência "Por hora"</td>
+        <td>Próxima execução em +1 hora a partir da criação</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-004</td>
+        <td>Habilitar/Desabilitar agendamento</td>
+        <td>Criar agendamento, clicar no toggle para desativar</td>
+        <td>Toggle desativa o schedule; "próxima execução" não é mais calculada</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-005</td>
+        <td>Editar agendamento</td>
+        <td>Clicar no lápis de um agendamento, alterar horário, salvar</td>
+        <td>Próxima execução é recalculada com o novo horário</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-006</td>
+        <td>Excluir agendamento</td>
+        <td>Clicar na lixeira de um agendamento, confirmar</td>
+        <td>Agendamento removido da lista permanentemente</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-007</td>
+        <td>Agendamento executa automaticamente</td>
+        <td>Criar agendamento para 2 minutos à frente, aguardar</td>
+        <td>Run é executado automaticamente no horário e registrado no histórico</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-008</td>
+        <td>Agendamento requer Pro</td>
+        <td>Tentar criar agendamento na versão Free</td>
+        <td>App exibe mensagem que agendamento é funcionalidade Pro</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-10-009</td>
+        <td>Badge de frequência no card</td>
+        <td>Criar agendamentos com frequências diferentes, ver lista</td>
+        <td>Cada card exibe badge com frequência (Diário, Semanal, Por Hora) e status</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 11 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 11 — Configurações</h1>
+  <h2 class="area-title"><span class="area-num">11</span> Todas as Abas de Configuração</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-11-001</td>
+        <td>Salvar preferências gerais</td>
+        <td>Alterar tema, idioma e log level, fechar configurações, reabrir</td>
+        <td>Todas as alterações persistidas após reiniciar a seção de configurações</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-002</td>
+        <td>Adicionar pasta monitorada</td>
+        <td>Ir em Configurações → Pastas, clicar em "+" e selecionar pasta</td>
+        <td>Pasta adicionada à lista com modo padrão "Manual"</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-003</td>
+        <td>Remover pasta monitorada</td>
+        <td>Clicar na lixeira de uma pasta monitorada</td>
+        <td>Pasta removida da lista de monitoramento</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-004</td>
+        <td>Alterar modo de monitoramento</td>
+        <td>Clicar no seletor de modo de uma pasta (Manual / Tempo Real / Agendado)</td>
+        <td>Modo atualizado e persistido. Watcher ativado/desativado conforme o modo</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-005</td>
+        <td>Watcher em tempo real</td>
+        <td>Configurar pasta em modo "Tempo Real", adicionar arquivo na pasta</td>
+        <td>App detecta o novo arquivo e aplica as regras do perfil ativo automaticamente</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-006</td>
+        <td>Estratégia de conflito — Sufixo</td>
+        <td>Selecionar estratégia "Sufixo" na aba Conflitos, verificar o exemplo preview</td>
+        <td>Estratégia salva; preview mostra exemplo de arquivo renomeado com sufixo</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-007</td>
+        <td>Estratégia de conflito — Pasta</td>
+        <td>Selecionar estratégia "Pasta de Conflitos"</td>
+        <td>Preview mostra que arquivo será movido para "_conflitos"</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-008</td>
+        <td>Dicas — desativar completamente</td>
+        <td>Ir em Configurações → Dicas, desativar o toggle de dicas</td>
+        <td>Banner de dicas não aparece mais em nenhuma view</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-009</td>
+        <td>Dicas — frequência</td>
+        <td>Alterar frequência de dicas para "Baixa" e "Desligada"</td>
+        <td>Frequência de exibição das dicas reduz conforme configurado</td>
+        <td class="prio"><span class="badge-low">P3</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-010</td>
+        <td>Dica inteligente — Desktop com muitos arquivos</td>
+        <td>Configurar Desktop como pasta monitorada com mais de 30 arquivos</td>
+        <td>App exibe dica sugerindo organizar o Desktop</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-011</td>
+        <td>Dispensar dica</td>
+        <td>Clicar em "Dispensar" em um banner de dica</td>
+        <td>Dica não aparece novamente por um período</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-11-012</td>
+        <td>Log level — Debug</td>
+        <td>Alterar log level para "Debug"</td>
+        <td>Configuração salva; logs internos passam a incluir mensagens de debug</td>
+        <td class="prio"><span class="badge-low">P3</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===================== ÁREA 12 ===================== -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Área 12 — Help Center e Tour</h1>
+  <h2 class="area-title"><span class="area-num">12</span> Central de Ajuda e Onboarding</h2>
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th style="width:80px">ID</th>
+        <th>Descrição do Teste</th>
+        <th>Passos</th>
+        <th>Resultado Esperado</th>
+        <th style="width:60px">Prio</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="id">TC-12-001</td>
+        <td>Abrir Help Center</td>
+        <td>Clicar em "Ajuda" no menu lateral</td>
+        <td>Help Center abre com lista de artigos e campo de busca</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-002</td>
+        <td>Busca de artigos</td>
+        <td>Digitar "simulação" no campo de busca</td>
+        <td>Lista filtra mostrando artigos relacionados à simulação</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-003</td>
+        <td>Abrir artigo de ajuda</td>
+        <td>Clicar em um artigo na lista</td>
+        <td>Artigo abre com conteúdo formatado e legível</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-004</td>
+        <td>Favoritar artigo</td>
+        <td>Clicar no ícone de estrela em um artigo</td>
+        <td>Artigo adicionado aos favoritos com feedback visual</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-005</td>
+        <td>Desfavoritar artigo</td>
+        <td>Clicar novamente na estrela de um artigo favoritado</td>
+        <td>Artigo removido dos favoritos</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-006</td>
+        <td>Artigos recentes</td>
+        <td>Abrir 3 artigos diferentes, ir para a listagem de artigos recentes</td>
+        <td>Seção "Recentes" exibe os últimos 5 artigos visualizados</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-007</td>
+        <td>Filtro por categoria</td>
+        <td>Clicar nas categorias: Início Rápido, Tutoriais, FAQ, Glossário, Solução de Problemas</td>
+        <td>Cada categoria filtra e exibe apenas artigos do tipo correto</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-008</td>
+        <td>Tour guiado — avançar steps</td>
+        <td>Iniciar o tour, clicar em "Próximo" em cada etapa</td>
+        <td>Tour navega pelas 6 etapas: dashboard, simular, regras, perfis, histórico, watcher</td>
+        <td class="prio"><span class="badge-high">P1</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-009</td>
+        <td>Tour — pular</td>
+        <td>Iniciar tour, clicar em "Pular"</td>
+        <td>Tour fechado, app volta ao estado normal</td>
+        <td class="prio"><span class="badge-med">P2</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-010</td>
+        <td>Tour — reiniciar pelo Help Center</td>
+        <td>No Help Center, localizar botão "Fazer o Tour", clicar</td>
+        <td>Tour reinicia do início</td>
+        <td class="prio"><span class="badge-low">P3</span></td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td class="id">TC-12-011</td>
+        <td>Help Center funciona offline</td>
+        <td>Desconectar internet, abrir Help Center e buscar artigos</td>
+        <td>Help Center funciona normalmente (conteúdo local, zero dependência de rede)</td>
+        <td class="prio"><span class="badge-crit">P0</span></td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOLHA DE EXECUÇÃO -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Folha de Execução de Testes</h1>
+  <div class="info-box">
+    Use esta folha para registrar cada ciclo de testes. Preencha uma linha por sessão de QA.
+  </div>
+
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>Ciclo</th>
+        <th>Data</th>
+        <th>Testador</th>
+        <th>Versão do App</th>
+        <th>Sistema Operacional</th>
+        <th class="check-col">Total Passou</th>
+        <th class="check-col">Total Falhou</th>
+        <th class="check-col">Pulados</th>
+        <th>Defeitos Encontrados (IDs)</th>
+        <th>Observações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td><td></td><td></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td>
+      </tr>
+      <tr>
+        <td>2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <td>3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <td>4</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+      <tr>
+        <td>5</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <br/>
+
+  <h2 class="area-title">Registro de Defeitos</h2>
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th style="width:70px">Bug ID</th>
+        <th style="width:80px">TC Relacionado</th>
+        <th>Descrição do Defeito</th>
+        <th style="width:70px">Severidade</th>
+        <th style="width:80px">Data</th>
+        <th style="width:80px">Status</th>
+        <th>Observações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>BUG-001</td><td></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-002</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-003</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-004</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-005</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-006</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-007</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-008</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-009</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>BUG-010</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <!-- CRITÉRIOS DE ACEITE -->
+  <div class="page-break"></div>
+  <h1 class="section-title">Critérios de Aceite para Release</h1>
+
+  <div class="warn-box">
+    <strong>BLOQUEIO DE RELEASE:</strong> Todos os testes P0 (Críticos) devem passar. Falhas em P0 impedem o release.
+  </div>
+
+  <table class="test-table">
+    <thead>
+      <tr>
+        <th>Critério</th>
+        <th>Condição</th>
+        <th style="width:40px">✓</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>P0 — Zero falhas críticas</strong></td>
+        <td>Todos os 34 testes marcados como P0 devem passar sem falha</td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td><strong>P1 — Máximo 5% de falhas</strong></td>
+        <td>No máximo 3 dos 52 testes P1 podem falhar (falhas devem ser documentadas)</td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td><strong>Performance</strong></td>
+        <td>TC-01-003 (startup &lt;2s) e TC-08-006 (1000 arquivos &lt;5s) devem passar</td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td><strong>Segurança do dado</strong></td>
+        <td>TC-07-003 (simulação não move arquivos) e TC-09-004 (rollback completo) devem passar</td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td><strong>Offline</strong></td>
+        <td>TC-12-011 (Help Center offline) deve passar</td>
+        <td class="check">☐</td>
+      </tr>
+      <tr>
+        <td><strong>Licença Free vs Pro</strong></td>
+        <td>TC-02-007 (limite 3 regras Free) e TC-10-008 (agendamento requer Pro) devem passar</td>
+        <td class="check">☐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p><strong>DeskCraft QA Test Plan v1.0</strong> — Gerado em Maio de 2026 — Documento Interno</p>
+    <p>Para abrir como PDF: pressione Ctrl+P no navegador e selecione "Salvar como PDF"</p>
+  </div>
+
+</div><!-- /content -->
+</body>
+</html>

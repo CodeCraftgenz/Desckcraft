@@ -1,6 +1,12 @@
 use sha2::{Digest, Sha256};
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 /// Computes a unique hardware fingerprint for the current machine.
 /// Uses processor ID + motherboard serial, hashed with SHA-256.
 /// Algorithm matches the C# HardwareHelper.ComputeHardwareId() for Windows.
@@ -60,6 +66,7 @@ fn run_wmic_query(component: &str, field: &str) -> String {
     // Fallback to wmic
     let output = Command::new("wmic")
         .args([component, "get", field])
+        .creation_flags(CREATE_NO_WINDOW)
         .output();
 
     match output {
@@ -93,6 +100,7 @@ fn try_powershell_query(component: &str, field: &str) -> Option<String> {
 
     let output = Command::new("powershell")
         .args(["-NoProfile", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
         .output()
         .ok()?;
 

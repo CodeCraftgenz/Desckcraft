@@ -92,6 +92,50 @@ pub fn create_profile(
     })
 }
 
+/// Updates an existing profile's name, icon and color.
+pub fn update_profile(
+    conn: &Connection,
+    id: &str,
+    name: &str,
+    icon: &str,
+    color: &str,
+) -> Result<Profile> {
+    let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+
+    let rows = conn
+        .execute(
+            "UPDATE profiles SET name = ?1, icon = ?2, color = ?3, updated_at = ?4 WHERE id = ?5",
+            rusqlite::params![name, icon, color, now, id],
+        )
+        .context("Failed to update profile")?;
+
+    if rows == 0 {
+        return Err(anyhow::anyhow!("Profile not found: {}", id));
+    }
+
+    let profile = conn
+        .query_row(
+            "SELECT id, name, icon, color, is_active, is_default, created_at, updated_at
+             FROM profiles WHERE id = ?1",
+            [id],
+            |row| {
+                Ok(Profile {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    icon: row.get(2)?,
+                    color: row.get(3)?,
+                    is_active: row.get(4)?,
+                    is_default: row.get(5)?,
+                    created_at: row.get(6)?,
+                    updated_at: row.get(7)?,
+                })
+            },
+        )
+        .context("Failed to re-read updated profile")?;
+
+    Ok(profile)
+}
+
 /// Activates a profile by deactivating all others and activating the specified one.
 pub fn activate_profile(conn: &Connection, id: &str) -> Result<()> {
     let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();

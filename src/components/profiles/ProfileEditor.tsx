@@ -73,6 +73,7 @@ export function ProfileEditor({
 }: ProfileEditorProps) {
   const toast = useToast();
   const createProfile = useProfileStore((s) => s.createProfile);
+  const updateProfile = useProfileStore((s) => s.updateProfile);
   const getProfileRules = useProfileStore((s) => s.getProfileRules);
   const addRuleToProfile = useProfileStore((s) => s.addRuleToProfile);
   const removeRuleFromProfile = useProfileStore((s) => s.removeRuleFromProfile);
@@ -155,11 +156,9 @@ export function ProfileEditor({
       let profileId: string;
 
       if (isEditing) {
-        // For editing, we cannot update name/icon/color since there is no update_profile backend command.
-        // We handle rule assignments only.
+        await updateProfile(editingProfile.id, trimmed, selectedIcon, selectedColor);
         profileId = editingProfile.id;
       } else {
-        // Create new profile
         const created = await createProfile(trimmed, selectedIcon, selectedColor);
         profileId = created.id;
       }
@@ -208,7 +207,7 @@ export function ProfileEditor({
             if (nameError) setNameError('');
           }}
           error={nameError}
-          disabled={isEditing}
+          disabled={false}
         />
 
         {/* Icon selector */}
@@ -224,7 +223,7 @@ export function ProfileEditor({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => !isEditing && setSelectedIcon(key)}
-                disabled={isEditing}
+                disabled={false}
                 title={label}
                 className={`
                   relative flex items-center justify-center p-3 rounded-lg
@@ -264,7 +263,7 @@ export function ProfileEditor({
                 whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => !isEditing && setSelectedColor(key)}
-                disabled={isEditing}
+                disabled={false}
                 title={label}
                 className={`
                   relative w-8 h-8 rounded-full ${className}

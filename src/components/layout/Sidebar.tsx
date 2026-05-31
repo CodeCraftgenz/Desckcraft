@@ -14,28 +14,30 @@ import {
 } from 'lucide-react';
 import { useAppStore, useProfileStore } from '@/stores';
 import { VIEWS } from '@/lib/constants';
+import { useT, STRINGS } from '@/lib/i18n';
 import logoSrc from '@/assets/logo.png';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 interface NavItem {
   id: string;
-  label: string;
+  labelKey: keyof typeof STRINGS;
   icon: React.ElementType;
   dataTour?: string;
 }
 
 const navItems: NavItem[] = [
-  { id: VIEWS.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
-  { id: VIEWS.RULES, label: 'Regras', icon: FileText, dataTour: 'nav-rules' },
-  { id: VIEWS.PROFILES, label: 'Perfis', icon: Users, dataTour: 'nav-profiles' },
-  { id: VIEWS.SIMULATION, label: 'Simulação', icon: FlaskConical },
-  { id: VIEWS.HISTORY, label: 'Histórico', icon: History, dataTour: 'nav-history' },
-  { id: VIEWS.SCHEDULING, label: 'Agendamento', icon: CalendarClock },
-  { id: VIEWS.SETTINGS, label: 'Configurações', icon: Settings },
-  { id: VIEWS.HELP, label: 'Ajuda', icon: HelpCircle, dataTour: 'nav-help' },
+  { id: VIEWS.DASHBOARD, labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { id: VIEWS.RULES, labelKey: 'nav.rules', icon: FileText, dataTour: 'nav-rules' },
+  { id: VIEWS.PROFILES, labelKey: 'nav.profiles', icon: Users, dataTour: 'nav-profiles' },
+  { id: VIEWS.SIMULATION, labelKey: 'nav.simulation', icon: FlaskConical },
+  { id: VIEWS.HISTORY, labelKey: 'nav.history', icon: History, dataTour: 'nav-history' },
+  { id: VIEWS.SCHEDULING, labelKey: 'nav.scheduling', icon: CalendarClock },
+  { id: VIEWS.SETTINGS, labelKey: 'nav.settings', icon: Settings },
+  { id: VIEWS.HELP, labelKey: 'nav.help', icon: HelpCircle, dataTour: 'nav-help' },
 ];
 
 export function Sidebar() {
+  const t = useT();
   const { currentView, sidebarCollapsed, setView, toggleSidebar } =
     useAppStore();
   const activeProfile = useProfileStore((s) => s.activeProfile);
@@ -95,7 +97,7 @@ export function Sidebar() {
                   />
                   {!sidebarCollapsed && (
                     <span className="text-sm font-medium whitespace-nowrap">
-                      {item.label}
+                      {t(item.labelKey)}
                     </span>
                   )}
                   {isActive && !sidebarCollapsed && (
@@ -111,7 +113,7 @@ export function Sidebar() {
 
             if (sidebarCollapsed) {
               return (
-                <Tooltip key={item.id} content={item.label} placement="right">
+                <Tooltip key={item.id} content={t(item.labelKey)} placement="right">
                   {button}
                 </Tooltip>
               );
@@ -154,7 +156,7 @@ export function Sidebar() {
                   {activeProfile.name}
                 </p>
                 <p className="text-[10px] text-gray-500 dark:text-gray-500">
-                  Perfil ativo
+                  {t('nav.activeProfile')}
                 </p>
               </div>
             </div>
@@ -181,7 +183,7 @@ export function Sidebar() {
           ) : (
             <>
               <ChevronsLeft size={18} />
-              <span className="text-xs font-medium">Recolher</span>
+              <span className="text-xs font-medium">{t('nav.collapse')}</span>
             </>
           )}
         </button>

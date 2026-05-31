@@ -271,7 +271,9 @@ export function FolderSettings() {
             <div className="space-y-2">
               <AnimatePresence mode="popLayout">
                 {folders.map((folder) => {
-                  const modeConfig = MODE_BADGE_CONFIG[folder.mode];
+                  const safeMode: WatchMode =
+                    folder.mode && folder.mode in MODE_BADGE_CONFIG ? folder.mode : 'manual';
+                  const modeConfig = MODE_BADGE_CONFIG[safeMode];
                   const ModeIcon = modeConfig.icon;
                   return (
                     <motion.div
@@ -299,7 +301,7 @@ export function FolderSettings() {
                       {/* Watch mode selector */}
                       <div className="shrink-0 w-32">
                         <select
-                          value={folder.mode}
+                          value={safeMode}
                           onChange={(e) =>
                             handleUpdateMode(folder.id, e.target.value as WatchMode)
                           }

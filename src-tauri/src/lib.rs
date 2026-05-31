@@ -44,6 +44,13 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            let handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                check_for_updates(handle).await;
+            });
+            Ok(())
+        })
         .manage(AppState {
             db: Mutex::new(conn),
             app_data_dir: app_data_dir.clone(),
@@ -62,6 +69,7 @@ pub fn run() {
             rule_commands::update_rule,
             rule_commands::toggle_rule,
             rule_commands::delete_rule,
+            rule_commands::reorder_rules,
             rule_commands::get_rule_conditions,
             rule_commands::add_rule_condition,
             rule_commands::delete_rule_condition,
@@ -71,6 +79,7 @@ pub fn run() {
             // Profile commands
             profile_commands::list_profiles,
             profile_commands::create_profile,
+            profile_commands::update_profile,
             profile_commands::activate_profile,
             profile_commands::delete_profile,
             profile_commands::get_profile_rules,
@@ -80,6 +89,7 @@ pub fn run() {
             settings_commands::get_setting,
             settings_commands::set_setting,
             settings_commands::get_all_settings,
+            settings_commands::set_startup_with_windows,
             // Help commands
             help_commands::list_help_favorites,
             help_commands::add_help_favorite,
@@ -237,6 +247,74 @@ fn run_scheduled_organization(
     let result = organizer::executor::execute(conn, &simulation, &run.id, &conflict_strategy)?;
 
     Ok((result.moved, result.skipped, result.errors))
+}
+
+/// Checks for app updates via the configured endpoint and prompts the user.
+/// Silent on failure — update checks must never crash the app.
+async fn check_for_updates(handle: tauri::AppHandle) {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
+    use tauri_plugin_updater::UpdaterExt;
+
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+
+    let updater = match handle.updater() {
+        Ok(u) => u,
+        Err(e) => {
+            log::warn!("Updater unavailable: {}", e);
+            return;
+        }
+    };
+
+    let update = match updater.check().await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            log::info!("DeskCraft is up to date");
+            return;
+        }
+        Err(e) => {
+            log::warn!("Update check failed: {}", e);
+            return;
+        }
+    };
+
+    let version = update.version.clone();
+    let body = update.body.clone().unwrap_or_default();
+    let msg = format!(
+        "Nova versão {} disponível!\n\n{}\n\nDeseja baixar e instalar agora?",
+        version, body
+    );
+
+    log::info!("Update available: {}", version);
+
+    let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+    handle
+        .dialog()
+        .message(msg)
+        .title("Atualização disponível")
+        .kind(MessageDialogKind::Info)
+        .buttons(MessageDialogButtons::OkCancelCustom(
+            "Atualizar".to_string(),
+            "Depois".to_string(),
+        ))
+        .show(move |answer| {
+            let _ = tx.send(answer);
+        });
+
+    if !rx.await.unwrap_or(false) {
+        log::info!("Update declined by user");
+        return;
+    }
+
+    log::info!("Downloading and installing update...");
+    match update.download_and_install(|_, _| {}, || {}).await {
+        Ok(_) => {
+            log::info!("Update installed — restarting app");
+            handle.exit(0);
+        }
+        Err(e) => {
+            log::error!("Update install failed: {}", e);
+        }
+    }
 }
 
 /// Returns a sensible default app data directory for DeskCraft.

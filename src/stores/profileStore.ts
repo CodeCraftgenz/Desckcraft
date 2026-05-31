@@ -11,6 +11,7 @@ interface ProfileState {
 
   fetchProfiles: () => Promise<void>;
   createProfile: (name: string, icon: string, color: string) => Promise<Profile>;
+  updateProfile: (id: string, name: string, icon: string, color: string) => Promise<Profile>;
   activateProfile: (id: string) => Promise<void>;
   deleteProfile: (id: string) => Promise<void>;
   getProfileRules: (profileId: string) => Promise<Rule[]>;
@@ -52,6 +53,32 @@ export const useProfileStore = create<ProfileState>()((set) => ({
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  updateProfile: async (id, name, icon, color) => {
+    set({ error: null });
+    try {
+      const updated = await tauriInvoke<Profile>('update_profile', {
+        id,
+        name,
+        icon,
+        color,
+      });
+      set((state) => ({
+        profiles: state.profiles.map((p) =>
+          p.id === id ? { ...p, name: updated.name, icon: updated.icon, color: updated.color, updated_at: updated.updated_at } : p,
+        ),
+        activeProfile:
+          state.activeProfile?.id === id
+            ? { ...state.activeProfile, name: updated.name, icon: updated.icon, color: updated.color, updated_at: updated.updated_at }
+            : state.activeProfile,
+      }));
+      return updated;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      set({ error: message });
       throw err;
     }
   },

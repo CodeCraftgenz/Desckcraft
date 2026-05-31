@@ -201,6 +201,20 @@ export function RuleBuilder({ ruleId }: RuleBuilderProps) {
   const handleSave = async () => {
     if (!validate()) return;
 
+    // Validate regex conditions before saving
+    for (const c of conditions) {
+      const isRegex = c.field === 'regex' || c.operator === 'matches';
+      if (isRegex && c.value.trim()) {
+        try {
+          new RegExp(c.value.trim());
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Padrão inválido';
+          toast.error(`Regex inválido: "${c.value.trim()}" — ${msg}`);
+          return;
+        }
+      }
+    }
+
     setIsSaving(true);
 
     try {

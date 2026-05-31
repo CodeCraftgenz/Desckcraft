@@ -60,6 +60,12 @@ pub fn delete_rule(id: String, state: State<AppState>) -> Result<(), String> {
     rules::delete_rule(&conn, &id).map_err(|e| format!("Falha ao excluir regra: {}", e))
 }
 
+#[tauri::command]
+pub fn reorder_rules(ordered_ids: Vec<String>, state: State<AppState>) -> Result<(), String> {
+    let mut conn = state.db.lock().map_err(|e| format!("Erro de acesso ao banco de dados: {}", e))?;
+    rules::reorder_rules(&mut conn, &ordered_ids).map_err(|e| format!("Falha ao reordenar regras: {}", e))
+}
+
 // ── Rule Conditions ───────────────────────────────────────────────────────
 
 #[tauri::command]

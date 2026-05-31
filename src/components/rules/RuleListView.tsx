@@ -10,7 +10,25 @@ import {
   Filter,
   Zap,
   SlidersHorizontal,
+  ChevronDown,
 } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -32,6 +50,8 @@ const FILTER_OPTIONS: { value: FilterStatus; label: string }[] = [
   { value: 'enabled', label: 'Ativas' },
   { value: 'disabled', label: 'Inativas' },
 ];
+
+const PAGE_SIZE = 20;
 
 /* ---------- Skeleton ---------- */
 
@@ -65,8 +85,20 @@ interface RuleCardProps {
 }
 
 function RuleCard({ rule, index, onEdit, onDelete, onToggle }: RuleCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: rule.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 'auto' as const,
+  };
+
   return (
     <motion.div
+      ref={setNodeRef}
+      style={style}
       layout
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -80,21 +112,27 @@ function RuleCard({ rule, index, onEdit, onDelete, onToggle }: RuleCardProps) {
           hover:shadow-md hover:border-brand-200 dark:hover:border-brand-800
           transition-all duration-200
           ${!rule.is_enabled ? 'opacity-60' : ''}
+          ${isDragging ? 'shadow-xl ring-2 ring-brand-300 dark:ring-brand-700' : ''}
         `}
       >
         <div className="flex items-center gap-3 p-4">
           {/* Drag handle */}
-          <div
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
             className="
-              shrink-0 cursor-grab
+              shrink-0 cursor-grab active:cursor-grabbing
               text-gray-300 dark:text-gray-600
-              hover:text-gray-400 dark:hover:text-gray-500
-              transition-colors
+              hover:text-gray-500 dark:hover:text-gray-400
+              transition-colors touch-none
+              focus:outline-none focus:text-brand-500
             "
             title="Arrastar para reordenar"
+            aria-label="Arrastar para reordenar"
           >
             <GripVertical size={18} />
-          </div>
+          </button>
 
           {/* Rule info - click to edit */}
           <div
@@ -206,13 +244,20 @@ export function RuleListView() {
     fetchRules,
     toggleRule,
     deleteRule,
+    reorderRules,
     clearSelected,
   } = useRuleStore();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [deleteTarget, setDeleteTarget] = useState<Rule | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   /* ---------- Fetch on mount ---------- */
 
@@ -247,6 +292,19 @@ export function RuleListView() {
 
     return result;
   }, [rules, searchQuery, filterStatus]);
+
+  /* ---------- Pagination ---------- */
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, filterStatus]);
+
+  const visibleRules = filteredRules.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredRules.length;
+
+  const handleLoadMore = useCallback(() => {
+    setVisibleCount((c) => c + PAGE_SIZE);
+  }, []);
 
   /* ---------- Handlers ---------- */
 
@@ -291,6 +349,32 @@ export function RuleListView() {
       setIsDeleting(false);
     }
   }, [deleteTarget, deleteRule, toast]);
+
+  const isFilterActive = searchQuery.trim().length > 0 || filterStatus !== 'all';
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      if (isFilterActive) {
+        toast.info('Limpe os filtros para reordenar regras');
+        return;
+      }
+
+      const oldIndex = rules.findIndex((r) => r.id === active.id);
+      const newIndex = rules.findIndex((r) => r.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(rules, oldIndex, newIndex);
+      const orderedIds = reordered.map((r) => r.id);
+      try {
+        await reorderRules(orderedIds);
+      } catch {
+        toast.error('Erro ao reordenar regras');
+      }
+    },
+    [rules, reorderRules, toast, isFilterActive],
+  );
 
   /* ---------- Render ---------- */
 
@@ -376,19 +460,45 @@ export function RuleListView() {
 
       {/* Rule list */}
       {!isLoading && filteredRules.length > 0 && (
-        <div className="space-y-2">
-          <AnimatePresence mode="popLayout">
-            {filteredRules.map((rule, index) => (
-              <RuleCard
-                key={rule.id}
-                rule={rule}
-                index={index}
-                onEdit={handleEditRule}
-                onDelete={setDeleteTarget}
-                onToggle={handleToggle}
-              />
-            ))}
-          </AnimatePresence>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={visibleRules.map((r) => r.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              <AnimatePresence mode="popLayout">
+                {visibleRules.map((rule, index) => (
+                  <RuleCard
+                    key={rule.id}
+                    rule={rule}
+                    index={index}
+                    onEdit={handleEditRule}
+                    onDelete={setDeleteTarget}
+                    onToggle={handleToggle}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      {/* Load More */}
+      {!isLoading && hasMore && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="ghost"
+            size="md"
+            icon={ChevronDown}
+            onClick={handleLoadMore}
+          >
+            Carregar mais ({filteredRules.length - visibleCount} restante
+            {filteredRules.length - visibleCount !== 1 ? 's' : ''})
+          </Button>
         </div>
       )}
 

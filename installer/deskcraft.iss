@@ -10,7 +10,7 @@
 ; Output: installer\Output\DeskCraft-Setup-{version}.exe
 
 #define MyAppName "DeskCraft"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "DeskCraft"
 #define MyAppURL "https://deskcraft.app"
 #define MyAppExeName "deskcraft.exe"
@@ -44,7 +44,7 @@ WizardSmallImageFile=wizard-small.bmp
 ; Versão Windows mínima: Windows 10
 MinVersion=10.0
 ; Desinstalar
-UninstallDisplayIcon={app}\{#MyAppExeName}
+UninstallDisplayIcon={app}\icon.ico
 UninstallDisplayName={#MyAppName}
 ; Permitir que o usuário escolha o diretório
 DisableDirPage=no
@@ -62,6 +62,8 @@ Name: "startupicon"; Description: "Iniciar {#MyAppName} com o Windows"; GroupDes
 [Files]
 ; Executável principal (gerado pelo Tauri build)
 Source: "..\src-tauri\target\release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+; Ícone HD para atalhos (garante qualidade e transparência)
+Source: "..\src-tauri\icons\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; WebView2 bootstrapper — será baixado automaticamente se necessário (ver [Code])
 ; Se preferir embutir o bootstrapper, baixe de:
@@ -70,9 +72,9 @@ Source: "..\src-tauri\target\release\{#MyAppExeName}"; DestDir: "{app}"; Flags: 
 ; Source: "MicrosoftEdgeWebview2Setup.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Comment: "{#MyAppDescription}"
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"; Comment: "{#MyAppDescription}"
 Name: "{group}\Desinstalar {#MyAppName}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; Comment: "{#MyAppDescription}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"; Comment: "{#MyAppDescription}"; Tasks: desktopicon
 
 [Registry]
 ; Iniciar com o Windows (se selecionado)

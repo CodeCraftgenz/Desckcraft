@@ -23,6 +23,19 @@ pub fn create_profile(
 }
 
 #[tauri::command]
+pub fn update_profile(
+    id: String,
+    name: String,
+    icon: String,
+    color: String,
+    state: State<AppState>,
+) -> Result<Profile, String> {
+    let conn = state.db.lock().map_err(|e| format!("Erro de acesso ao banco de dados: {}", e))?;
+    profiles::update_profile(&conn, &id, &name, &icon, &color)
+        .map_err(|e| format!("Falha ao atualizar perfil: {}", e))
+}
+
+#[tauri::command]
 pub fn activate_profile(id: String, state: State<AppState>) -> Result<(), String> {
     let conn = state.db.lock().map_err(|e| format!("Erro de acesso ao banco de dados: {}", e))?;
     profiles::activate_profile(&conn, &id)

@@ -129,6 +129,24 @@ pub fn delete_rule(conn: &Connection, id: &str) -> Result<()> {
     Ok(())
 }
 
+/// Reorders rules by assigning new sort_order values matching the given ID sequence.
+/// All ids must reference existing rules; the operation runs in a single transaction.
+pub fn reorder_rules(conn: &mut Connection, ordered_ids: &[String]) -> Result<()> {
+    let now = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    let tx = conn.transaction().context("Failed to start reorder transaction")?;
+    {
+        let mut stmt = tx
+            .prepare("UPDATE rules SET sort_order = ?1, updated_at = ?2 WHERE id = ?3")
+            .context("Failed to prepare reorder update")?;
+        for (idx, id) in ordered_ids.iter().enumerate() {
+            stmt.execute(rusqlite::params![idx as i32, now, id])
+                .context("Failed to update rule sort_order")?;
+        }
+    }
+    tx.commit().context("Failed to commit reorder transaction")?;
+    Ok(())
+}
+
 // ── Rule Conditions ───────────────────────────────────────────────────────
 
 /// Gets all conditions for a given rule, ordered by sort_order.

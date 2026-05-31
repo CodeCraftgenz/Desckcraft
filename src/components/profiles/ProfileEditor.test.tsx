@@ -84,12 +84,12 @@ describe('ProfileEditor', () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it('should disable name when editing', () => {
+  it('should allow editing name when editing existing profile', () => {
     const profile = createMockProfile();
     render(<ProfileEditor {...defaultProps} editingProfile={profile} />);
 
     const nameInput = screen.getByPlaceholderText('Ex: Trabalho, Projetos, Estudos...');
-    expect(nameInput).toBeDisabled();
+    expect(nameInput).not.toBeDisabled();
   });
 
   it('should show "Nenhuma regra disponível" when no rules exist', () => {

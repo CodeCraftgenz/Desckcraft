@@ -5,6 +5,8 @@ import { Switch } from '@/components/ui/Switch';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useToast } from '@/components/ui/Toast';
+import { tauriInvoke } from '@/lib/tauri';
 import type { AppSettings } from '@/types/settings';
 
 const THEME_OPTIONS: {
@@ -56,6 +58,7 @@ const LOG_LEVEL_OPTIONS = [
  * - Log level selector
  */
 export function GeneralSettings() {
+  const toast = useToast();
   const theme = useSettingsStore((s) => s.settings.theme);
   const language = useSettingsStore((s) => s.settings.language);
   const startMinimized = useSettingsStore((s) => s.settings.start_minimized);
@@ -85,10 +88,21 @@ export function GeneralSettings() {
   );
 
   const handleStartWithOsChange = useCallback(
-    (checked: boolean) => {
-      updateSetting('start_with_os', checked);
+    async (checked: boolean) => {
+      try {
+        await tauriInvoke('set_startup_with_windows', { enabled: checked });
+        updateSetting('start_with_os', checked);
+        toast.success(
+          checked
+            ? 'DeskCraft iniciará junto com o Windows'
+            : 'Inicialização automática desativada',
+        );
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(`Falha ao configurar inicialização: ${msg}`);
+      }
     },
-    [updateSetting],
+    [updateSetting, toast],
   );
 
   const handleLogLevelChange = useCallback(

@@ -13,24 +13,25 @@ import {
 } from 'lucide-react';
 import { useAppStore, useSettingsStore, useProfileStore, useHistoryStore } from '@/stores';
 import { VIEWS } from '@/lib/constants';
+import { useT, STRINGS } from '@/lib/i18n';
 import { Tooltip } from '@/components/ui/Tooltip';
 import type { Run } from '@/types/runs';
 
 /* ---------- View Titles ---------- */
 
-const viewTitles: Record<string, string> = {
-  [VIEWS.DASHBOARD]: 'Dashboard',
-  [VIEWS.RULES]: 'Regras',
-  [VIEWS.RULE_EDITOR]: 'Editor de Regras',
-  [VIEWS.PROFILES]: 'Perfis',
-  [VIEWS.SIMULATION]: 'Simulação',
-  [VIEWS.EXECUTION]: 'Execução',
-  [VIEWS.HISTORY]: 'Histórico',
-  [VIEWS.HISTORY_DETAIL]: 'Detalhes do Histórico',
-  [VIEWS.SCHEDULING]: 'Agendamento',
-  [VIEWS.SETTINGS]: 'Configurações',
-  [VIEWS.HELP]: 'Ajuda',
-  [VIEWS.HELP_ARTICLE]: 'Artigo de Ajuda',
+const viewTitleKeys: Record<string, keyof typeof STRINGS> = {
+  [VIEWS.DASHBOARD]: 'view.dashboard',
+  [VIEWS.RULES]: 'view.rules',
+  [VIEWS.RULE_EDITOR]: 'view.ruleEditor',
+  [VIEWS.PROFILES]: 'view.profiles',
+  [VIEWS.SIMULATION]: 'view.simulation',
+  [VIEWS.EXECUTION]: 'view.execution',
+  [VIEWS.HISTORY]: 'view.history',
+  [VIEWS.HISTORY_DETAIL]: 'view.historyDetail',
+  [VIEWS.SCHEDULING]: 'view.scheduling',
+  [VIEWS.SETTINGS]: 'view.settings',
+  [VIEWS.HELP]: 'view.help',
+  [VIEWS.HELP_ARTICLE]: 'view.helpArticle',
 };
 
 /* ---------- Notification Helpers ---------- */
@@ -193,6 +194,7 @@ function NotificationDropdown({
 /* ---------- Header Component ---------- */
 
 export function Header() {
+  const t = useT();
   const currentView = useAppStore((s) => s.currentView);
   const setView = useAppStore((s) => s.setView);
   const { settings, updateSetting } = useSettingsStore();
@@ -206,7 +208,8 @@ export function Header() {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const pageTitle = viewTitles[currentView] || 'DeskCraft';
+  const titleKey = viewTitleKeys[currentView];
+  const pageTitle = titleKey ? t(titleKey) : 'DeskCraft';
   const isDark =
     settings.theme === 'dark' ||
     (settings.theme === 'system' &&
@@ -272,7 +275,7 @@ export function Header() {
       {/* Right Controls */}
       <div className="flex items-center gap-1">
         {/* Theme Toggle */}
-        <Tooltip content={isDark ? 'Modo claro' : 'Modo escuro'} placement="bottom">
+        <Tooltip content={isDark ? t('header.theme.light') : t('header.theme.dark')} placement="bottom">
           <button
             type="button"
             onClick={toggleTheme}
@@ -291,7 +294,7 @@ export function Header() {
 
         {/* Notifications */}
         <div className="relative" ref={notificationRef}>
-          <Tooltip content="Notificações" placement="bottom">
+          <Tooltip content={t('header.notifications')} placement="bottom">
             <button
               type="button"
               onClick={() => {
@@ -362,7 +365,7 @@ export function Header() {
               </div>
             )}
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 max-w-[120px] truncate">
-              {activeProfile?.name || 'Sem perfil'}
+              {activeProfile?.name || t('header.noProfile')}
             </span>
             <ChevronDown
               size={14}

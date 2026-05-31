@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, Component, type ReactNode, type ErrorInfo } from 'react';
+import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { ToastProvider } from '@/components/ui/Toast';
 import { TourProvider } from '@/components/tour';
@@ -57,18 +57,78 @@ function ContentRouter() {
     }
   };
 
+  return <div key={currentView}>{renderView()}</div>;
+}
+
+/* ---------- Error Boundary ---------- */
+
+interface ErrorBoundaryState {
+  error: Error | null;
+}
+
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  resetKey?: string | number;
+  inline?: boolean;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { error: null };
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { error };
+  }
+
+  componentDidUpdate(prevProps: ErrorBoundaryProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[DeskCraft] Render error:', error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      const containerClass = this.props.inline
+        ? 'p-6'
+        : 'min-h-screen flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-950';
+      return (
+        <div className={containerClass}>
+          <div className="max-w-2xl w-full rounded-xl border border-red-200 dark:border-red-900 bg-white dark:bg-gray-900 p-6 shadow-lg">
+            <h1 className="text-lg font-bold text-red-600 dark:text-red-400 mb-2">
+              Algo deu errado
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Ocorreu um erro inesperado na interface. Detalhes técnicos abaixo.
+            </p>
+            <pre className="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg overflow-auto max-h-64 text-gray-800 dark:text-gray-200">
+              {this.state.error.stack || this.state.error.message}
+            </pre>
+            <button
+              type="button"
+              onClick={() => this.setState({ error: null })}
+              className="mt-4 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* ---------- Routed Content with granular boundary ---------- */
+
+function RoutedContent() {
+  const currentView = useAppStore((s) => s.currentView);
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={currentView}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -8 }}
-        transition={{ duration: 0.15, ease: 'easeOut' }}
-      >
-        {renderView()}
-      </motion.div>
-    </AnimatePresence>
+    <ErrorBoundary inline resetKey={currentView}>
+      <ContentRouter />
+    </ErrorBoundary>
   );
 }
 
@@ -134,19 +194,24 @@ export default function App() {
 
   // Show login screen if not licensed
   if (!isLicensed) {
-    return <LoginView />;
+    return (
+      <ErrorBoundary>
+        <LoginView />
+      </ErrorBoundary>
+    );
   }
 
-  // Show main app
   return (
-    <ToastProvider>
-      <TourProvider>
-        <TipsProvider>
-          <MainLayout>
-            <ContentRouter />
-          </MainLayout>
-        </TipsProvider>
-      </TourProvider>
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <TourProvider>
+          <TipsProvider>
+            <MainLayout>
+              <RoutedContent />
+            </MainLayout>
+          </TipsProvider>
+        </TourProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

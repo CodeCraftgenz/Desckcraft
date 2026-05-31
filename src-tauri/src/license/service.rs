@@ -5,9 +5,9 @@ use std::time::Duration;
 const APP_ID: u32 = 11;
 
 const VERIFY_ENDPOINT: &str =
-    "https://codecraftgenz-monorepo.onrender.com/api/verify-license";
+    "https://api.codecraftgenz.com.br/api/verify-license";
 const ACTIVATE_ENDPOINT: &str =
-    "https://codecraftgenz-monorepo.onrender.com/api/public/license/activate-device";
+    "https://api.codecraftgenz.com.br/api/public/license/activate-device";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(20);
 
 /// Result of a license API call.
