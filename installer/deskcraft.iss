@@ -10,7 +10,7 @@
 ; Output: installer\Output\DeskCraft-Setup-{version}.exe
 
 #define MyAppName "DeskCraft"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "DeskCraft"
 #define MyAppURL "https://deskcraft.app"
 #define MyAppExeName "deskcraft.exe"
@@ -46,6 +46,9 @@ MinVersion=10.0
 ; Desinstalar
 UninstallDisplayIcon={app}\icon.ico
 UninstallDisplayName={#MyAppName}
+; Code signing — comando passado via ISCC /Ssigntool="..."
+SignTool=signtool
+SignedUninstaller=yes
 ; Permitir que o usuário escolha o diretório
 DisableDirPage=no
 ; Mostrar progresso

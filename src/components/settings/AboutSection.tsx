@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 
-const APP_VERSION = '1.0.0';
+declare const __APP_VERSION__: string;
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
 
 const TECH_STACK = [
   { name: 'Tauri', description: 'Framework nativo multiplataforma', color: 'text-sky-500' },
